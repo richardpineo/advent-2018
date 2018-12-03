@@ -2,7 +2,7 @@
 import Puzzle from './puzzle'
 import * as _ from 'lodash'
 
-class Claim {
+export class Claim {
     constructor(private line: string) {
         const regexEval = new RegExp(Claim.regex);
         const matches = regexEval.exec(line);
@@ -39,7 +39,7 @@ class Claim {
     private static regex = '#([0-9]+) @ ([0-9]+),([0-9]+): ([0-9]+)x([0-9]+)';
 }
 
-class Location {
+export class Location {
     constructor(public left: number, public top: number) { }
     id(): string {
         return `${this.left},${this.top}`;
