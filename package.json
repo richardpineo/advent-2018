@@ -4,7 +4,7 @@
   "description": "Advent of code 2018",
   "main": "out/index.js",
   "scripts": {
-    "start": "node ./out/index.js"
+    "start": "tsc; node ./out/index.js"
   },
   "author": "Richard Pineo",
   "license": "ISC",

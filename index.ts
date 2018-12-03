@@ -1,11 +1,16 @@
 import 'Promise'
 import 'colors'
+const fs = require('fs')
+
+const puzzleDir = 'puzzle';
 
 console.log("starting up".blue);
 
-let all = [
-    "./1a"
-];
+let all = Array<string>();
+fs.readdirSync(puzzleDir).forEach((file: string) => {
+    file = file.replace('.ts', '.js');
+    all.push(file);
+})
 
 let toRun = function () {
     if (process.argv.length > 2) {
@@ -19,8 +24,10 @@ let toRun = function () {
 
 toRun().forEach(r => {
     console.log("-----".green);
-    console.log(`--> Solving advent puzzle ${r}`.red);
-    require(r);
+    const relativePath = `./${puzzleDir}/${r}`;
+    const logPath = r.replace('.js', '');
+    console.log(`--> Solving ${logPath}`.red);
+    require(relativePath);
     console.log("-----".green);
 });
 
