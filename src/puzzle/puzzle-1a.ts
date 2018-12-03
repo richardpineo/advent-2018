@@ -1,5 +1,5 @@
 
-import { Puzzle } from './puzzle'
+import Puzzle from './puzzle'
 var fs = require('fs');
 
 export default class Puzzle1a implements Puzzle {

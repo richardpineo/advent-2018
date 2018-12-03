@@ -1,16 +1,15 @@
 import 'Promise'
 import 'colors'
 
-import { Puzzle } from './src/puzzle/puzzle'
-import './puzzle/all-puzzles'
+import Puzzle from './src/puzzle/puzzle'
 import Puzzle1a from './src/puzzle/puzzle-1a';
-
+import Puzzle1b from './src/puzzle/puzzle-1b';
 
 console.log("starting up".blue);
 
 var puzzles = Array<Puzzle>();
 puzzles.push(new Puzzle1a());
-
+puzzles.push(new Puzzle1b());
 
 const toRun = function (): Array<Puzzle> {
     if (process.argv.length > 2) {
