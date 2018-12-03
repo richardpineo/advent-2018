@@ -1,9 +1,9 @@
 import 'Promise'
 import 'colors'
 
-import { Puzzle } from './puzzle/puzzle'
+import { Puzzle } from './src/puzzle/puzzle'
 import './puzzle/all-puzzles'
-import Puzzle1a from './puzzle/puzzle-1a';
+import Puzzle1a from './src/puzzle/puzzle-1a';
 
 
 console.log("starting up".blue);
