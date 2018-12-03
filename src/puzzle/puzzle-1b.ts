@@ -1,40 +1,32 @@
 
 import Puzzle from './puzzle'
-var fs = require('fs');
 
-export default class Puzzle1a implements Puzzle {
-    getName(): string {
-        return "1b: Calibration with frequency";
+export default class Puzzle1a extends Puzzle {
+    constructor() {
+        super("1a: Calibration with frequency");
     }
 
     solve() {
-        const lines: Array<string> = fs.readFileSync('./data/1').toString().split("\n");
-        console.log(`Read file, ${lines.length} lines found`);
-
-        let value = 0;
-        let count = 0;
-        let found = false;
-        let frequencies = new Set<number>();
-        while (!found) {
-            lines.forEach(v => {
-                if (!found) {
-                    const num = parseInt(v);
-                    value += num;
-
-                    count++;
-                    console.log(`${count}: number is ${num}, value is ${value}, set has ${frequencies.size} elements`)
-
-                    // Have we seen this before?
-                    if (frequencies.has(value)) {
-                        found = true;
-                    }
-                    else {
-                        frequencies.add(value);
-                    }
-                }
-            })
-        }
-
+        const lines = this.readLines('./data/1');
+        const value = this.findDuplicate(lines);
         console.log(`Value is ${value}`);
+    }
+
+    private findDuplicate(lines: Array<string>): number {
+        let value = 0;
+        const valuesSeen = new Set<number>();
+        while (true) {
+            for (let line of lines) {
+                const num = parseInt(line);
+                value += num;
+
+                // Have we seen this before?
+                if (valuesSeen.has(value)) {
+                    return value;
+                }
+
+                valuesSeen.add(value);
+            }
+        }
     }
 }

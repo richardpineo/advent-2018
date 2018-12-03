@@ -1,15 +1,9 @@
 import 'Promise'
 import 'colors'
-
 import Puzzle from './src/puzzle/puzzle'
-import Puzzle1a from './src/puzzle/puzzle-1a';
-import Puzzle1b from './src/puzzle/puzzle-1b';
+import { puzzles } from './all-puzzles'
 
 console.log("starting up".blue);
-
-var puzzles = Array<Puzzle>();
-puzzles.push(new Puzzle1a());
-puzzles.push(new Puzzle1b());
 
 const toRun = function (): Array<Puzzle> {
     if (process.argv.length > 2) {
@@ -25,7 +19,7 @@ const toRun = function (): Array<Puzzle> {
 
 toRun().forEach(puzzle => {
     console.log("-----".green);
-    console.log(`--> Solving ${puzzle.getName()}`.red);
+    console.log(`--> Solving ${puzzle.name}`.red);
     puzzle.solve();
     console.log("-----".green);
 });

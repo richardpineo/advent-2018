@@ -1,15 +1,13 @@
 
 import Puzzle from './puzzle'
-var fs = require('fs');
 
-export default class Puzzle1a implements Puzzle {
-    getName(): string {
-        return "1a: Calibration";
+export default class Puzzle1a extends Puzzle {
+    constructor() {
+        super("1a: Calibration");
     }
 
     solve() {
-        const lines: Array<string> = fs.readFileSync('./data/1').toString().split("\n");
-        console.log(`Read file, ${lines.length} lines found`);
+        const lines = this.readLines('./data/1');
 
         let value = 0;
         lines.forEach(v => {
