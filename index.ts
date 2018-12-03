@@ -1,33 +1,33 @@
 import 'Promise'
 import 'colors'
-const fs = require('fs')
 
-const puzzleDir = 'puzzle';
+import { Puzzle } from './puzzle/puzzle'
+import './puzzle/all-puzzles'
+import Puzzle1a from './puzzle/puzzle-1a';
+
 
 console.log("starting up".blue);
 
-let all = Array<string>();
-fs.readdirSync(puzzleDir).forEach((file: string) => {
-    file = file.replace('.ts', '.js');
-    all.push(file);
-})
+var puzzles = Array<Puzzle>();
+puzzles.push(new Puzzle1a());
 
-let toRun = function () {
+
+const toRun = function (): Array<Puzzle> {
     if (process.argv.length > 2) {
         let tests = process.argv.slice(2);
         console.log(`Running tests ${tests.join(", ")}`.gray);
-        return tests;
+        // FIXME
+        //        return tests;
+        console.log('NOT IMPLEMENTED'.yellow)
     }
     console.log("Running all tests...".gray);
-    return all;
+    return puzzles;
 };
 
-toRun().forEach(r => {
+toRun().forEach(puzzle => {
     console.log("-----".green);
-    const relativePath = `./${puzzleDir}/${r}`;
-    const logPath = r.replace('.js', '');
-    console.log(`--> Solving ${logPath}`.red);
-    require(relativePath);
+    console.log(`--> Solving ${puzzle.getName()}`.red);
+    puzzle.solve();
     console.log("-----".green);
 });
 
