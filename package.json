@@ -1,0 +1,11 @@
+{
+  "name": "advent-2018",
+  "version": "1.0.0",
+  "description": "Advent of code 2018",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Richard Pineo",
+  "license": "ISC"
+}
