@@ -109,6 +109,12 @@ export default class Puzzle4 extends Puzzle {
 
         const guardCounts = calculateGuardCounts(guardEvents);
 
+        this.solve4a(guardCounts);
+        this.solve4b(guardCounts);
+    }
+
+    private solve4a(guardCounts: Map<number, Array<number>>) {
+
         // Sum up the minutes per guard
         let minutesPerGuard = new Map<number, number>();
         guardCounts.forEach((counts, guardId) => {
@@ -128,9 +134,26 @@ export default class Puzzle4 extends Puzzle {
         const maxMinute = findMaxMinute(<Array<number>>maxGuardCount);
         const answer = maxGuardId * maxMinute;
 
-        console.log(`Answer: ${answer}.  ${maxGuardId} x ${maxMinute}. Total of ${maxMinutes} awake`);
+        console.log(`4a: answer: ${answer}.  ${maxGuardId} x ${maxMinute}. Total of ${maxMinutes} asleep`);
     }
 
+    private solve4b(guardCounts: Map<number, Array<number>>) {
+        // Find the highest count
+        let maxCount = -1;
+        let maxGuardId = -1;
+        let maxMinute = -1;
+        guardCounts.forEach((counts, guardId) => {
+            counts.forEach((count, minute) => {
+                if (count > maxCount) {
+                    maxGuardId = guardId;
+                    maxMinute = minute;
+                    maxCount = count;
+                }
+            });
+        });
+        const answer = maxMinute * maxGuardId;
+        console.log(`4a: answer: ${answer}.  ${maxGuardId} x ${maxMinute}. ${maxCount} times asleep`);
+    }
     private addDummyEvents(guardEvents: GuardEvent[]): GuardEvent[] {
 
         let lastGuardArrval = new GuardEvent(-1, 0, 0, 0, 0, GuardState.Asleep);
