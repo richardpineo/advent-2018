@@ -1,22 +1,15 @@
 
-import Puzzle from './puzzle'
-import { Claim, countLocations } from './puzzle-3a'
+import { Puzzle3 } from './puzzle-3'
 
 
-export default class Puzzle3b extends Puzzle {
+export default class Puzzle3b extends Puzzle3 {
     constructor() {
         super("3a: Find the one");
     }
 
     solve() {
-        const lines = this.readLines('./data/3');
-
-        const claims = new Array<Claim>();
-        lines.forEach(line => {
-            claims.push(new Claim(line));
-        })
-
-        let allLocations = countLocations(claims);
+        const claims = this.loadClaims();
+        const allLocations = this.countLocations(claims);
 
         claims.forEach(claim => {
             const claimLocs = claim.locations();
