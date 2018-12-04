@@ -53,7 +53,6 @@ function findMaxMinute(counts: number[]) {
             maxMinute = i;
         }
     }
-    console.log(`Maximum minute is ${maxCount} at minute ${maxMinute}`);
     return maxMinute;
 }
 
@@ -134,7 +133,7 @@ export default class Puzzle4 extends Puzzle {
         const maxMinute = findMaxMinute(<Array<number>>maxGuardCount);
         const answer = maxGuardId * maxMinute;
 
-        console.log(`4a: answer: ${answer}.  ${maxGuardId} x ${maxMinute}. Total of ${maxMinutes} asleep`);
+        console.log(`4a: ${answer} | ${maxGuardId} x ${maxMinute} | Total of ${maxMinutes} asleep`);
     }
 
     private solve4b(guardCounts: Map<number, Array<number>>) {
@@ -152,7 +151,7 @@ export default class Puzzle4 extends Puzzle {
             });
         });
         const answer = maxMinute * maxGuardId;
-        console.log(`4a: answer: ${answer}.  ${maxGuardId} x ${maxMinute}. ${maxCount} times asleep`);
+        console.log(`4b: ${answer} | ${maxGuardId} x ${maxMinute} | ${maxCount} times asleep`);
     }
     private addDummyEvents(guardEvents: GuardEvent[]): GuardEvent[] {
 
