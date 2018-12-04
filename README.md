@@ -1,6 +1,8 @@
 # advent-2018
 Advent of code 2018 - now in TypeScript!
 
+https://adventofcode.com/2018
+
 Required components:
 `
 npm

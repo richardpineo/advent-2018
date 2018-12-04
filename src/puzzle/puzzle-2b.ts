@@ -2,7 +2,6 @@
 import Puzzle from './puzzle'
 
 import * as _ from 'lodash'
-import { stringify } from 'querystring';
 
 export default class Puzzle2b extends Puzzle {
     constructor() {

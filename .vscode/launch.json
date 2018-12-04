@@ -3,12 +3,23 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [
+    "configurations": [{
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "tsc: build",
+            "name": "tsc and run",
+            "program": "${workspaceFolder}/index.ts",
+            "protocol": "inspector",
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ]
+        },
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "run",
             "program": "${workspaceFolder}/out/index.js",
+            "protocol": "inspector",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
