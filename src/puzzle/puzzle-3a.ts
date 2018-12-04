@@ -1,6 +1,5 @@
 
 import Puzzle from './puzzle'
-import * as _ from 'lodash'
 
 export class Claim {
     constructor(private line: string) {
@@ -46,6 +45,21 @@ export class Location {
     }
 }
 
+export function countLocations(claims: Claim[]): Map<string, number> {
+
+    let allLocations = new Map<string, number>();
+    claims.forEach(claim => {
+        const claimLocs = claim.locations();
+        claimLocs.forEach(claimLoc => {
+            const id = claimLoc.id();
+            const previousCount = allLocations.get(id) || 0;
+            allLocations.set(id, previousCount + 1);
+        });
+    })
+
+    return allLocations;
+}
+
 export default class Puzzle3a extends Puzzle {
     constructor() {
         super("3a: Cut the fabric");
@@ -59,20 +73,15 @@ export default class Puzzle3a extends Puzzle {
             claims.push(new Claim(line));
         })
 
-        let allLocations = new Set<string>();
-        let dupLocations = new Set<string>();
-        claims.forEach(claim => {
-            const claimLocs = claim.locations();
-            claimLocs.forEach(claimLoc => {
-                const id = claimLoc.id();
-                if (allLocations.has(id)) {
-                    dupLocations.add(id);
-                } else {
-                    allLocations.add(id);
-                }
-            });
-        })
+        const allLocations = countLocations(claims);
 
-        console.log(`${dupLocations.size} duplicates found`);
+        let dupCount = 0;
+        allLocations.forEach(value => {
+            if (value > 1) {
+                dupCount++;
+            }
+        });
+
+        console.log(`${dupCount} duplicates found`);
     }
 }

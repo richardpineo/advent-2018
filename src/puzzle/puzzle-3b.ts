@@ -1,7 +1,6 @@
 
 import Puzzle from './puzzle'
-import { Claim } from './puzzle-3a'
-import * as _ from 'lodash'
+import { Claim, countLocations } from './puzzle-3a'
 
 
 export default class Puzzle3b extends Puzzle {
@@ -12,20 +11,12 @@ export default class Puzzle3b extends Puzzle {
     solve() {
         const lines = this.readLines('./data/3');
 
-        let claims = new Array<Claim>();
+        const claims = new Array<Claim>();
         lines.forEach(line => {
             claims.push(new Claim(line));
         })
 
-        let allLocations = new Map<string, number>();
-        claims.forEach(claim => {
-            const claimLocs = claim.locations();
-            claimLocs.forEach(claimLoc => {
-                const id = claimLoc.id();
-                const previousCount = allLocations.get(id) || 0;
-                allLocations.set(id, previousCount + 1);
-            });
-        })
+        let allLocations = countLocations(claims);
 
         claims.forEach(claim => {
             const claimLocs = claim.locations();
