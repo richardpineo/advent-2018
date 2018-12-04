@@ -94,7 +94,7 @@ function calculateGuardCounts(guardEvents: GuardEvent[]): Map<number, Array<numb
 
 export default class Puzzle4 extends Puzzle {
     constructor() {
-        super("4a: Sleepy guards");
+        super("4: Sleepy guards");
     }
 
     solve() {
