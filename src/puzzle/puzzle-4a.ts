@@ -79,12 +79,17 @@ export default class Puzzle1a extends Puzzle {
             }
             const month = parseInt(matches[1]);
             const day = parseInt(matches[2]);
-            const minutes = parseInt(matches[3]);
+            let minutes = parseInt(matches[3]);
             const action = matches[4];
             const order = month * 100 + day;
 
             const state = textToGuardState(action);
             const guardId = textToGuardId(action);
+            if (state === GuardState.Arrived) {
+                // Correct the minutes if they came early.
+                // The day won't matter since it's only used in ordering.
+                minutes = 0;
+            }
 
             guardEvents.push(new GuardEvent(guardId, order, minutes, state));
         })
@@ -92,7 +97,43 @@ export default class Puzzle1a extends Puzzle {
         // Sort the guard events by order
         guardEvents.sort((a, b) => a.order - b.order);
 
+        // Sum up the minutes per guard
+        let minutesPerGuard = new Map<number, number>();
+        let totalThisNight = 0;
+        let lastGuardId = -1;
+        let beganAt = -1;
+        guardEvents.forEach(guardEvent => {
+            switch (guardEvent.state) {
+                case GuardState.Arrived:
+                    if (lastGuardId !== -1) {
+                        // Add on the remaining minutes before 1am.
+                        totalThisNight += 60 - beganAt;
+                        const previousMinutes = minutesPerGuard.get(lastGuardId) || 0;
+                        minutesPerGuard.set(lastGuardId, previousMinutes + totalThisNight);
+                    }
+                    beganAt = guardEvent.minute;
+                    totalThisNight = 0;
+                    lastGuardId = guardEvent.id;
+                    break;
+                case GuardState.Asleep:
+                    const awakeFor = guardEvent.minute - beganAt;
+                    totalThisNight += awakeFor;
+                    break;
+                case GuardState.Awake:
+                    beganAt = guardEvent.minute;
+                    break;
+            }
+        })
 
-        console.log(`${guardEvents.length} events found`);
+
+        let maxMinutes = 0;
+        let maxGuardId = -1;
+        minutesPerGuard.forEach((guardId, minutes) => {
+            if (minutes > maxMinutes) {
+                maxGuardId = guardId;
+                maxMinutes = minutes;
+            }
+        });
+        console.log(`Max guard id ${maxGuardId} has ${maxMinutes} minutes awake`);
     }
 }
