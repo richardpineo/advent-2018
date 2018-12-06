@@ -1,6 +1,9 @@
 
 import Puzzle from './puzzle'
 
+// 3a: 116920 duplicates found
+// 3b: 382 has no overlaps
+
 export class Claim {
     constructor(private line: string) {
         const regexEval = new RegExp(Claim.regex);
@@ -45,8 +48,45 @@ export class Location {
     }
 }
 
-export abstract class Puzzle3 extends Puzzle {
-    abstract solve(): void;
+export default class Puzzle3 extends Puzzle {
+    constructor() {
+        super("3: Cut the fabric");
+    }
+
+    solve(): void {
+        this.solve3a();
+        this.solve3b();
+    }
+
+    solve3a() {
+        const claims = this.loadClaims();
+        const allLocations = this.countLocations(claims);
+
+        let dupCount = 0;
+        allLocations.forEach(value => {
+            if (value > 1) {
+                dupCount++;
+            }
+        });
+
+        console.log(`3a: ${dupCount} duplicates found`);
+    }
+
+    solve3b() {
+        const claims = this.loadClaims();
+        const allLocations = this.countLocations(claims);
+
+        claims.forEach(claim => {
+            const claimLocs = claim.locations();
+            let overlaps = claimLocs.filter(loc => {
+                const count = allLocations.get(loc.id());
+                return count !== 1;
+            });
+            if (overlaps.length === 0) {
+                console.log(`3b: ${claim.id} has no overlaps`);
+            }
+        })
+    }
 
     loadClaims(): Claim[] {
         const lines = this.readLines('./data/3');
