@@ -7,8 +7,9 @@ import Puzzle5 from './src/puzzle/puzzle-5';
 
 export const puzzles = Array<Puzzle>();
 
-// puzzles.push(new Puzzle1());
-// puzzles.push(new Puzzle2());
-// puzzles.push(new Puzzle3());
-// puzzles.push(new Puzzle4());
+puzzles.push(new Puzzle1());
+puzzles.push(new Puzzle2());
+puzzles.push(new Puzzle3());
+puzzles.push(new Puzzle4());
+// This one is slow:
 // puzzles.push(new Puzzle5());
