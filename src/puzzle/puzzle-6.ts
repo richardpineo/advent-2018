@@ -5,7 +5,7 @@ class Location {
     constructor(public id: string, public x: number, public y: number) { }
 }
 
-// 6a:
+// 6a: Largest is 3260 by id 9
 // 6b:
 export default class Puzzle6 extends Puzzle {
     constructor() {
@@ -18,19 +18,37 @@ export default class Puzzle6 extends Puzzle {
     }
 
     solve6a() {
+        // 3630 too high
         const locations = this.loadLocations();
         const extents = this.findExtents(locations);
         const topLeft = extents[0];
         const bottomRight = extents[1];
         const ownership = this.findOwnership(locations, topLeft, bottomRight);
         const possibleIds = this.findPossibleIds(locations, ownership, topLeft, bottomRight);
-        console.log(`6a: ${JSON.stringify(possibleIds)}`);
-
-        console.log(`6a: ${locations.length} in ${JSON.stringify(extents)}`);
+        const largest = this.findLargest(ownership, possibleIds);
+        console.log(`6a: Largest is ${largest[0]} by id ${largest[1]}`);
     }
 
     solve6b() {
         console.log(`6b: ${42}`);
+    }
+
+    findLargest(ownership: Location[], possibleIds: string[]): [number, string] {
+        let largest = 0;
+        let largestId = '';
+        possibleIds.forEach(id => {
+            let size = 0;
+            ownership.forEach(loc => {
+                if (loc.id === id) {
+                    size++;
+                }
+            })
+            if (size > largest) {
+                largest = size;
+                largestId = id;
+            }
+        })
+        return [largest, largestId];
     }
 
     findOwnership(locations: Location[], topLeft: Location, bottomRight: Location): Location[] {
@@ -40,7 +58,9 @@ export default class Puzzle6 extends Puzzle {
             for (let y = topLeft.y; y <= bottomRight.y; y++) {
                 // Find the id of the closest location
                 const closestId = this.findClosest(new Location('temp', x, y), locations);
-                ownership.push(new Location(closestId, x, y));
+                if (closestId !== '') {
+                    ownership.push(new Location(closestId, x, y));
+                }
             }
         }
         return ownership;
@@ -64,25 +84,30 @@ export default class Puzzle6 extends Puzzle {
             toRemove.add(idRight);
         }
 
-        return allIds.filter(id => toRemove.has(id));
+        return allIds.filter(id => !toRemove.has(id));
     }
 
     idForLocation(location: Location, locations: Location[]): string {
         const found = locations.filter(loc => loc.x === location.x && loc.y === location.y);
-        return found[0].id;
+        return found.length === 1 ? found[0].id : '';
     }
 
     findClosest(location: Location, locations: Location[]): string {
         let closestDistance = 9999;
-        let closestId = '';
         locations.forEach(loc => {
             const distance = this.computeDistance(loc, location);
             if (distance < closestDistance) {
                 closestDistance = distance;
-                closestId = loc.id;
             }
         })
-        return closestId;
+
+        // If there are mroe than one with this distance, reject it.
+        const numberMatching = locations.filter(loc => this.computeDistance(loc, location) === closestDistance);
+        if (numberMatching.length === 1) {
+            return numberMatching[0].id;
+        }
+
+        return '';
     }
 
     computeDistance(a: Location, b: Location) {

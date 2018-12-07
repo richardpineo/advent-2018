@@ -15,4 +15,4 @@ export const puzzles = Array<Puzzle>();
 // puzzles.push(new Puzzle4());
 // puzzles.push(new Puzzle5());
 puzzles.push(new Puzzle6());
-puzzles.push(new Puzzle7());
+// puzzles.push(new Puzzle7());
