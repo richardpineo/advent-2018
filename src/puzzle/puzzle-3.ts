@@ -4,7 +4,7 @@ import Puzzle from './puzzle'
 // 3a: 116920 duplicates found
 // 3b: 382 has no overlaps
 
-export class Claim {
+class Claim {
     constructor(private line: string) {
         const regexEval = new RegExp(Claim.regex);
         const matches = regexEval.exec(line);
@@ -41,7 +41,7 @@ export class Claim {
     private static regex = '#([0-9]+) @ ([0-9]+),([0-9]+): ([0-9]+)x([0-9]+)';
 }
 
-export class Location {
+class Location {
     constructor(public left: number, public top: number) { }
     id(): string {
         return `${this.left},${this.top}`;
