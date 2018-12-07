@@ -6,7 +6,7 @@ class Location {
 }
 
 // 6a: Largest is 3260 by id 9
-// 6b:
+// 6b: 42535 are close enough
 export default class Puzzle6 extends Puzzle {
     constructor() {
         super("6: Dangerous Coordinates");
@@ -18,7 +18,6 @@ export default class Puzzle6 extends Puzzle {
     }
 
     solve6a() {
-        // 3630 too high
         const locations = this.loadLocations();
         const extents = this.findExtents(locations);
         const topLeft = extents[0];
@@ -30,7 +29,35 @@ export default class Puzzle6 extends Puzzle {
     }
 
     solve6b() {
-        console.log(`6b: ${42}`);
+        const locations = this.loadLocations();
+        const extents = this.findExtents(locations);
+        const topLeft = extents[0];
+        const bottomRight = extents[1];
+        const closeEnough = this.findCloseEnough(locations, topLeft, bottomRight);
+        console.log(`6b: ${closeEnough.length} are close enough`);
+    }
+
+    distanceToAll(location: Location, locations: Location[]): number {
+        let distance = 0;
+        locations.forEach(loc => {
+            distance += this.computeDistance(loc, location);
+        })
+        return distance;
+    }
+
+    findCloseEnough(locations: Location[], topLeft: Location, bottomRight: Location): Location[] {
+        let closeEnough = new Array<Location>();
+        const MaxDistance = 10000;
+        for (let x = topLeft.x; x <= bottomRight.x; x++) {
+            for (let y = topLeft.y; y <= bottomRight.y; y++) {
+                let consider = new Location('temp', x, y);
+                let distance = this.distanceToAll(consider, locations);
+                if (distance < MaxDistance) {
+                    closeEnough.push(consider);
+                }
+            }
+        }
+        return closeEnough;
     }
 
     findLargest(ownership: Location[], possibleIds: string[]): [number, string] {
