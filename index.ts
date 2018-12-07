@@ -20,8 +20,11 @@ const toRun = function (): Array<Puzzle> {
 toRun().forEach(puzzle => {
     console.log("-----".green);
     console.log(`--> Solving ${puzzle.name}`.red);
+    const start = new Date().getTime();
     puzzle.solve();
-    console.log("-----".green);
+    const end = new Date().getTime();
+    console.log(`----- ${(end - start) / 1000} seconds`.green);
+
 });
 
 console.log("\nshutting down".blue);
