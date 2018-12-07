@@ -5,6 +5,7 @@ import Puzzle3 from './src/puzzle/puzzle-3';
 import Puzzle4 from './src/puzzle/puzzle-4';
 import Puzzle5 from './src/puzzle/puzzle-5';
 import Puzzle6 from './src/puzzle/puzzle-6';
+import Puzzle7 from './src/puzzle/puzzle-7';
 
 export const puzzles = Array<Puzzle>();
 
@@ -14,3 +15,4 @@ export const puzzles = Array<Puzzle>();
 // puzzles.push(new Puzzle4());
 // puzzles.push(new Puzzle5());
 puzzles.push(new Puzzle6());
+puzzles.push(new Puzzle7());
