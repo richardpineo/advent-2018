@@ -3,27 +3,15 @@ import 'colors'
 import Puzzle from './src/puzzle/puzzle'
 import { puzzles } from './all-puzzles'
 
-console.log("starting up".blue);
+console.log("The solution often turns out more beautiful than the puzzle.".red);
+console.log("  - Richard Dawkins\n".gray);
 
-const toRun = function (): Array<Puzzle> {
-    if (process.argv.length > 2) {
-        let tests = process.argv.slice(2);
-        console.log(`Running tests ${tests.join(", ")}`.gray);
-        // FIXME
-        //        return tests;
-        console.log('NOT IMPLEMENTED'.yellow)
-    }
-    console.log("Running all tests...".gray);
-    return puzzles;
-};
-
-toRun().forEach(puzzle => {
-    console.log("-----".green);
-    console.log(`--> Solving ${puzzle.name}`.red);
+puzzles.forEach(puzzle => {
+    console.log(`♘ Puzzle ${puzzle.name}`.green);
     const start = new Date().getTime();
     puzzle.solve();
     const end = new Date().getTime();
-    console.log(`----- ${(end - start) / 1000} seconds`.green);
+    console.log(`♞ ${(end - start) / 1000} seconds\n`.gray);
 
 });
 

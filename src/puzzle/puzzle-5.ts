@@ -6,7 +6,7 @@ import * as _ from 'lodash'
 // 5b: Best letter is j with length 5312
 export default class Puzzle1a extends Puzzle {
     constructor() {
-        super("5a: Polymers!");
+        super("5: Polymers!");
     }
 
     solve() {

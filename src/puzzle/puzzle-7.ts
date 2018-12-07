@@ -23,7 +23,7 @@ class Processing {
 // 7b: 864 elapsed: PQWFKJSVXUYEMZDNIHTAGOCRLB
 export default class Puzzle7 extends Puzzle {
     constructor() {
-        super("7: Dangerous Coordinates");
+        super("7: The Whole");
     }
 
     solve() {
