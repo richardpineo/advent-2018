@@ -11,7 +11,7 @@ class Tree {
     }
 }
 
-// 8a:
+// 8a: 138 is the sum of the metadata.
 // 8b:
 export default class Puzzle8 extends Puzzle {
     constructor() {
@@ -56,21 +56,22 @@ export default class Puzzle8 extends Puzzle {
     offsetCount(node: Node): number {
         let offset = 0;
         node.children.forEach(c => offset += this.offsetCount(c));
-        return offset += node.metadata.length;
+        // Add 2 for the header
+        return offset += node.metadata.length + 2;
     }
 
     dataToNode(data: number[], offset: number): Node {
         // First 2 are # children and # metadata
         const childCount = data[offset];
         const metadataCount = data[offset + 1];
+        let dataOffset = offset + 2;
 
         // consume the children
-        let dataOffset = 2;
         const children = new Array<Node>();
         for (let childIndex = 0; childIndex < childCount; childIndex++) {
-            const child = this.dataToNode(data, offset + dataOffset);
-            dataOffset += this.offsetCount(child);
+            const child = this.dataToNode(data, dataOffset);
             children.push(child);
+            dataOffset += this.offsetCount(child);
         }
 
         // consume the metadata
