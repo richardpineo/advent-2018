@@ -1,5 +1,6 @@
 
 import Puzzle from './puzzle'
+import { O_DIRECT } from 'constants';
 
 class Node {
     constructor(public metadata: number[], public children: Node[]) {
@@ -11,8 +12,8 @@ class Tree {
     }
 }
 
-// 8a: 138 is the sum of the metadata.
-// 8b:
+// 8a: 46829 is the sum of the metadata.
+// 8a: 37450 is the value of the root node.
 export default class Puzzle8 extends Puzzle {
     constructor() {
         super("1: Christmas trees");
@@ -32,7 +33,11 @@ export default class Puzzle8 extends Puzzle {
     }
 
     solveB() {
-        console.log(`1b: ${42}`);
+        const tree = this.fileToTree();
+
+        // Add up the metadata
+        const value = this.findValue(tree.root);
+        console.log(`8a: ${value} is the value of the root node.`);
     }
 
     addMetadata(node: Node): number {
@@ -44,6 +49,21 @@ export default class Puzzle8 extends Puzzle {
             sum += m;
         });
         return sum;
+    }
+
+    findValue(node: Node): number {
+        if (node.children.length === 0) {
+            return this.addMetadata(node);
+        }
+
+        let value = 0;
+        node.metadata.forEach(m => {
+            const index = m - 1;
+            if (index >= 0 && index < node.children.length) {
+                value += this.findValue(node.children[index]);
+            }
+        });
+        return value;
     }
 
     fileToTree(): Tree {
