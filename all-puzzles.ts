@@ -6,13 +6,15 @@ import Puzzle4 from './src/puzzle/puzzle-4';
 import Puzzle5 from './src/puzzle/puzzle-5';
 import Puzzle6 from './src/puzzle/puzzle-6';
 import Puzzle7 from './src/puzzle/puzzle-7';
+import Puzzle8 from './src/puzzle/puzzle-8';
 
 export const puzzles = Array<Puzzle>();
 
-puzzles.push(new Puzzle1());
-puzzles.push(new Puzzle2());
-puzzles.push(new Puzzle3());
-puzzles.push(new Puzzle4());
+// puzzles.push(new Puzzle1());
+// puzzles.push(new Puzzle2());
+// puzzles.push(new Puzzle3());
+// puzzles.push(new Puzzle4());
 // puzzles.push(new Puzzle5());
-puzzles.push(new Puzzle6());
-puzzles.push(new Puzzle7());
+// puzzles.push(new Puzzle6());
+// puzzles.push(new Puzzle7());
+puzzles.push(new Puzzle8());
