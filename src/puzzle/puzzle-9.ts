@@ -42,7 +42,18 @@ export default class Puzzle9 extends Puzzle {
 
     solveA() {
         const result = this.loadFile();
+        const highest = this.solveFor(result);
+        console.log(`9a: The highest score is: ${highest}`);
+    }
 
+    solveB() {
+        const result = this.loadFile();
+        result.highestMarble *= 100;
+        const highest = this.solveFor(result);
+        console.log(`9a: The highest score is: ${highest}`);
+    }
+
+    solveFor(result: GameResult) {
         // Allocate an array for the numbe of points
         const circle = new Array<number>();
         const scores = new Scores();
@@ -78,10 +89,7 @@ export default class Puzzle9 extends Puzzle {
             // console.log(circle.join(' '));
         }
 
-        console.log(`9a: The highest score is: ${scores.highest()}`);
-    }
-
-    solveB() {
+        return scores.highest();
     }
 
     shiftRemaining(circle: Array<number>, newPosition: number) {
