@@ -1,13 +1,12 @@
 import 'Promise'
 import 'colors'
-import Puzzle from './src/puzzle/puzzle'
 import { puzzles } from './all-puzzles'
 
 console.log("The solution often turns out more beautiful than the puzzle.".red);
 console.log("  - Richard Dawkins\n".gray);
 
 puzzles.forEach(puzzle => {
-    console.log(`♘ Puzzle ${puzzle.name}`.green);
+    console.log(`♘ ${puzzle.name}`.green);
     const start = new Date().getTime();
     puzzle.solve();
     const end = new Date().getTime();
