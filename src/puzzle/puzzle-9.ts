@@ -29,7 +29,8 @@ class Scores {
 }
 
 // This one was hard. If you use a singly-linked list then it doesn't scale in the way that is needed.
-// Instead, we use a doubly-linked list so additions occur in O(1) instead of O(n)
+// Instead, we use a doubly-linked list so deletions occur in O(1) instead of O(n)
+// Or maybe the collection I downloaded was dumb or i was using it wrong.
 
 class Node {
     constructor(public value: number, next: Node | undefined, prev: Node | undefined) {
@@ -45,6 +46,11 @@ class Node {
         this.next.prev = node;
         this.next = node;
         return node;
+    }
+
+    removePrevious() {
+        this.prev.prev.next = this;
+        this.prev = this.prev.prev;
     }
 }
 
@@ -82,14 +88,16 @@ export default class Puzzle9 extends Puzzle {
             if (marble % 23 === 0) {
                 const playerNum = marble % result.numPlayers;
 
+                // Add the marble to the score.
                 scores.addTo(playerNum, marble);
 
+                // Jump 6 backwards and remove the previous one
                 circle = circle.prev.prev.prev.prev.prev.prev;
 
+                // Add the previous to the score.
                 scores.addTo(playerNum, circle.prev.value);
 
-                circle.prev.prev.next = circle;
-                circle.prev = circle.prev.prev;
+                circle.removePrevious();
             }
             else {
                 circle = circle.next.push(marble);
