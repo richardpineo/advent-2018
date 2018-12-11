@@ -8,6 +8,7 @@ import Puzzle6 from './src/puzzle/puzzle-6';
 import Puzzle7 from './src/puzzle/puzzle-7';
 import Puzzle8 from './src/puzzle/puzzle-8';
 import Puzzle9 from './src/puzzle/puzzle-9';
+import Puzzle10 from './src/puzzle/puzzle-10';
 
 export const puzzles = Array<Puzzle>();
 
@@ -19,4 +20,5 @@ export const puzzles = Array<Puzzle>();
 // puzzles.push(new Puzzle6());
 // puzzles.push(new Puzzle7());
 // puzzles.push(new Puzzle8());
-puzzles.push(new Puzzle9());
+// puzzles.push(new Puzzle9());
+puzzles.push(new Puzzle10());
