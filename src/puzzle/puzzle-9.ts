@@ -28,8 +28,28 @@ class Scores {
     }
 }
 
+// This one was hard. If you use a singly-linked list then it doesn't scale in the way that is needed.
+// Instead, we use a doubly-linked list so additions occur in O(1) instead of O(n)
+
+class Node {
+    constructor(public value: number, next: Node | undefined, prev: Node | undefined) {
+        this.next = next || this;
+        this.prev = prev || this;
+    }
+
+    public next: Node;
+    public prev: Node;
+
+    push(value: number): Node {
+        const node = new Node(value, this.next, this);
+        this.next.prev = node;
+        this.next = node;
+        return node;
+    }
+}
+
 // 9a: The highest score is: 404502
-// 9b:
+// 9b: The highest score is: 3243916887
 export default class Puzzle9 extends Puzzle {
     constructor() {
         super("9: Marble Games");
@@ -50,76 +70,33 @@ export default class Puzzle9 extends Puzzle {
         const result = this.loadFile();
         result.highestMarble *= 100;
         const highest = this.solveFor(result);
-        console.log(`9a: The highest score is: ${highest}`);
+        console.log(`9b: The highest score is: ${highest}`);
     }
 
     solveFor(result: GameResult) {
-        // Allocate an array for the numbe of points
-        const circle = new Array<number>();
+        let circle = new Node(0, undefined, undefined);
         const scores = new Scores();
-
-        circle.push(0);
-        let activePosition = 0;
 
         for (let marble = 1; marble <= result.highestMarble; marble++) {
 
             if (marble % 23 === 0) {
                 const playerNum = marble % result.numPlayers;
+
                 scores.addTo(playerNum, marble);
 
-                for (let seven = 0; seven < 7; seven++) {
-                    activePosition = this.nextCounterClockwise(circle, activePosition);
-                }
-                scores.addTo(playerNum, circle[activePosition]);
-                circle.splice(activePosition, 1);
+                circle = circle.prev.prev.prev.prev.prev.prev;
+
+                scores.addTo(playerNum, circle.prev.value);
+
+                circle.prev.prev.next = circle;
+                circle.prev = circle.prev.prev;
             }
             else {
-                const clockwise1 = this.nextClockwise(circle, activePosition);
-                const clockwise2 = this.nextClockwise(circle, clockwise1);
-                activePosition = this.findNewPosition(clockwise1, clockwise2);
-                this.shiftRemaining(circle, activePosition);
-                if (activePosition === circle.length) {
-                    circle.push(marble);
-                }
-                else {
-                    circle[activePosition] = marble;
-                }
+                circle = circle.next.push(marble);
             }
-
-            // console.log(circle.join(' '));
         }
 
         return scores.highest();
-    }
-
-    shiftRemaining(circle: Array<number>, newPosition: number) {
-        if (newPosition >= circle.length) {
-            return;
-        }
-        circle.splice(newPosition, 0, -1);
-    }
-
-    findNewPosition(clockwise1: number, clockwise2: number): number {
-        if (clockwise2 === 0) {
-            return clockwise1 + 1;
-        }
-        return clockwise2;
-    }
-
-    nextClockwise(circle: Array<number>, activePosition: number): number {
-        const newPosition = activePosition + 1;
-        if (newPosition >= circle.length) {
-            return 0;
-        }
-        return newPosition;
-    }
-
-    nextCounterClockwise(circle: Array<number>, activePosition: number): number {
-        const newPosition = activePosition - 1;
-        if (newPosition < 0) {
-            return circle.length - 1;
-        }
-        return newPosition;
     }
 
     loadFile(): GameResult {
