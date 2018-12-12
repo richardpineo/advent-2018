@@ -1,5 +1,6 @@
 
 import Puzzle from './puzzle'
+import * as _ from 'lodash'
 
 class Position {
     constructor(public x: number, public y: number) {
@@ -17,7 +18,20 @@ class Point {
     }
 }
 
-// 10a:
+// 10a: 10242 smallest offset
+/*
+  ##    #    #  ######   ####   #####   #    #  ######  ######
+ #  #   #    #  #       #    #  #    #  #   #   #       #
+#    #  #    #  #       #       #    #  #  #    #       #
+#    #  #    #  #       #       #    #  # #     #       #
+#    #  ######  #####   #       #####   ##      #####   #####
+######  #    #  #       #  ###  #  #    ##      #       #
+#    #  #    #  #       #    #  #   #   # #     #       #
+#    #  #    #  #       #    #  #   #   #  #    #       #
+#    #  #    #  #       #   ##  #    #  #   #   #       #
+#    #  #    #  #        ### #  #    #  #    #  ######  ######
+*/
+
 // 10b:
 export default class Puzzle1 extends Puzzle {
     constructor() {
@@ -30,17 +44,82 @@ export default class Puzzle1 extends Puzzle {
     }
 
     solveA() {
-        const points = this.loadPoints();
-        console.log(`10a: ${points.length}`);
+        const startingPoints = this.loadPoints();
+        let points = startingPoints.slice();
+        let smallestBoxOffset = 0;
+        let smallestBoundingBoxArea = 99999999999999;
+        for (let offset = 0; offset < 100000; offset++) {
+            points = this.nextPoints(points);
+            const boundingBox = this.boundingBox(points.map(p => p.position));
+            const area = this.area(boundingBox);
+            if (area < smallestBoundingBoxArea) {
+                smallestBoundingBoxArea = area;
+                smallestBoxOffset = offset;
+            }
+            // console.log(`${offset} Bounding box: ${JSON.stringify(boundingBox)}`)
+        }
+
+        // 10242
+        console.log(`10a: ${smallestBoxOffset} smallest offset`);
+
+        points = startingPoints.slice();
+        for (let offset = 0; offset <= smallestBoxOffset; offset++) {
+            points = this.nextPoints(points);
+        }
+        // dump the points
+        const finalPositions = points.map(p => p.position);
+        const boundingBox = this.boundingBox(points.map(p => p.position));
+        for (let y = boundingBox[0].y; y <= boundingBox[1].y; y++) {
+            let line = ''
+            for (let x = boundingBox[0].x; x <= boundingBox[1].x; x++) {
+                line += this.isUsed(finalPositions, x, y) ? '#' : ' ';
+            }
+            console.log(line);
+        }
     }
 
     solveB() {
         console.log(`10b: ${42}`);
     }
 
-    boundingBox(points: Point[]): [Position, Position] {
-        let topLeft = new Position(points[0].position.x, points[0].position.y);
-        let bottomRight = new Position(points[0].position.x, points[0].position.y);
+    isUsed(points: Position[], x: number, y: number): boolean {
+        return _.some(points, p => {
+            return p.x === x && p.y === y;
+        })
+    }
+
+    nextPoints(points: Point[]): Point[] {
+        return points.map(point => {
+            return new Point(new Position(
+                point.position.x + point.velocity.dx,
+                point.position.y + point.velocity.dy), point.velocity);
+        })
+    }
+
+    area(box: [Position, Position]): number {
+        return (box[1].x - box[0].x) * (box[1].y - box[0].y);
+    }
+
+    boundingBox(positions: Position[]): [Position, Position] {
+        let topLeft = new Position(positions[0].x, positions[0].y);
+        let bottomRight = new Position(positions[0].x, positions[0].y);
+
+        for (let i = 1; i < positions.length; i++) {
+            const pos = positions[i];
+            if (pos.x < topLeft.x) {
+                topLeft.x = pos.x;
+            }
+            if (pos.y < topLeft.y) {
+                topLeft.y = pos.y;
+            }
+            if (pos.x > bottomRight.x) {
+                bottomRight.x = pos.x;
+            }
+            if (pos.y > bottomRight.y) {
+                bottomRight.y = pos.y;
+            }
+        }
+
         return [topLeft, bottomRight];
     }
 
