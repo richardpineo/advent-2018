@@ -39,11 +39,6 @@ export default class Puzzle1 extends Puzzle {
     }
 
     solve() {
-        this.solveA();
-        this.solveB();
-    }
-
-    solveA() {
         const startingPoints = this.loadPoints();
         let points = startingPoints.slice();
         let smallestBoxOffset = 0;
@@ -59,8 +54,7 @@ export default class Puzzle1 extends Puzzle {
             // console.log(`${offset} Bounding box: ${JSON.stringify(boundingBox)}`)
         }
 
-        // 10242
-        console.log(`10a: ${smallestBoxOffset} smallest offset`);
+        console.log(`10a: AHFGRKEE`);
 
         points = startingPoints.slice();
         for (let offset = 0; offset <= smallestBoxOffset; offset++) {
@@ -76,10 +70,9 @@ export default class Puzzle1 extends Puzzle {
             }
             console.log(line);
         }
-    }
 
-    solveB() {
-        console.log(`10b: ${42}`);
+        // 10243
+        console.log(`10b: ${smallestBoxOffset} smallest offset`);
     }
 
     isUsed(points: Position[], x: number, y: number): boolean {
