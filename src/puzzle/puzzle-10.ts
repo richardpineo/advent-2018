@@ -32,7 +32,7 @@ class Point {
 #    #  #    #  #        ### #  #    #  #    #  ######  ######
 */
 
-// 10b:
+// 10b: 10243
 export default class Puzzle1 extends Puzzle {
     constructor() {
         super("10: Skywriting");
