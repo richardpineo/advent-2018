@@ -38,10 +38,16 @@ export default class Puzzle1 extends Puzzle {
         console.log(`10b: ${42}`);
     }
 
+    boundingBox(points: Point[]): [Position, Position] {
+        let topLeft = new Position(points[0].position.x, points[0].position.y);
+        let bottomRight = new Position(points[0].position.x, points[0].position.y);
+        return [topLeft, bottomRight];
+    }
+
     loadPoints(): Point[] {
         const points = new Array<Point>();
         const lines = this.readLines('./data/10');
-        const regex = 'position=<\w+(\-?[0-9]+),\w+(\-?[0-9]+)> velocity=<\w+(\-?[0-9]+),\w+(\-?[0-9]+)>';
+        const regex = /position=<\s*(-?[0-9]+),\s*(\-?[0-9]+)> velocity=<\s*(\-?[0-9]+),\s*(\-?[0-9]+)>/;
         const regexEval = new RegExp(regex);
         lines.forEach(line => {
             const matches = regexEval.exec(line);
