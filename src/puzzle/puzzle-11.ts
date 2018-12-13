@@ -2,7 +2,7 @@
 import Puzzle from './puzzle'
 
 
-// 11a:
+// 11a: Max power is 30 at (21, 61)
 // 11b:
 export default class Puzzle11 extends Puzzle {
     constructor() {
@@ -16,7 +16,9 @@ export default class Puzzle11 extends Puzzle {
     }
 
     solveA() {
-
+        const grid = this.gridForSerialNumber(6042);
+        const power = this.maxPower(grid);
+        console.log(`11a: Max power is ${power[2]} at (${power[0]}, ${power[1]})`);
     }
 
     solveB() {
