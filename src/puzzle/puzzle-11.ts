@@ -5,15 +5,37 @@ class Grid {
     constructor(public serial: number) {
     }
 
-    powerFor(size: number, xStart: number, yStart: number): number {
-        let power = 0;
-        for (let y = 0; y < size; y++) {
-            for (let x = 0; x < size; x++) {
-                power += this.powerLevel(x + xStart, y + yStart);
-            }
+    powerFor(x: number, y: number, size: number): number {
+        if (size === 0) {
+            return 0;
         }
+
+        const cachedValue = this.powerForCache.get(this.cacheKey(x, y, size));
+        if (cachedValue !== undefined) {
+            return cachedValue;
+        }
+
+        // Start with a box one smaller
+        let power = this.powerFor(x, y, size - 1);
+
+        // Walk around the edges and add those in.
+
+        for (let yOffset = 0; yOffset < size; yOffset++) {
+            power += this.powerLevel(x + size - 1, y + yOffset);
+        }
+
+        // Don't count the corner twice!!
+        for (let xOffset = 0; xOffset < size - 1; xOffset++) {
+            power += this.powerLevel(x + xOffset, y + size - 1);
+        }
+
+        this.powerForCache.set(this.cacheKey(x, y, size), power);
         return power;
     }
+    cacheKey(x: number, y: number, size: number): string {
+        return `${x},${y},${size}`;
+    }
+    powerForCache = new Map<string, number>();
 
     powerLevel(x: number, y: number): number {
         const rackId = x + 10;
@@ -35,7 +57,7 @@ class MaxPower {
 }
 
 // 11a: Max power is 30 at (21, 61)
-// 11b:
+// 11b: 232, 251, 12 with power of 119
 export default class Puzzle11 extends Puzzle {
     constructor() {
         super("11: Chronal Charge");
@@ -44,7 +66,9 @@ export default class Puzzle11 extends Puzzle {
     solve() {
         this.runTestCases();
         this.solveA();
-        this.solveB();
+
+        // B is slow to solve.
+        // this.solveB();
     }
 
     solveA() {
@@ -54,7 +78,8 @@ export default class Puzzle11 extends Puzzle {
     }
 
     solveB() {
-        console.log(`11b: ${42}`);
+        const maxPower = this.maxPowerForSizes(6042);
+        console.log(`11b: ${maxPower.x}, ${maxPower.y}, ${maxPower.size} with power of ${maxPower.power}`);
     }
 
     runTestCases() {
@@ -76,11 +101,21 @@ export default class Puzzle11 extends Puzzle {
         const grid6 = new Grid(42);
         this.checkPower(grid6, 3, 21, 61, 30);
 
+        // The remaining tests are slow...
+        return;
+
         const maxPower1 = new MaxPower(16);
         maxPower1.x = 90;
+
         maxPower1.y = 269;
         maxPower1.power = 113;
         this.checkMaxPower(18, maxPower1);
+
+        const maxPower2 = new MaxPower(12);
+        maxPower2.x = 232;
+        maxPower2.y = 251;
+        maxPower2.power = 12;
+        this.checkMaxPower(42, maxPower2);
     }
 
     checkValue(grid: Grid, x: number, y: number, expected: number) {
@@ -111,7 +146,7 @@ export default class Puzzle11 extends Puzzle {
         const maxPower = new MaxPower(squareSize);
         for (let y = 0; y < 300 - squareSize; y++) {
             for (let x = 0; x < 300 - squareSize; x++) {
-                const power = grid.powerFor(squareSize, x, y);
+                const power = grid.powerFor(x, y, squareSize);
                 if (power > maxPower.power) {
                     maxPower.x = x;
                     maxPower.y = y;
@@ -126,6 +161,7 @@ export default class Puzzle11 extends Puzzle {
         const maxPower = new MaxPower(-1);
         const grid = new Grid(serial);
         for (let size = 1; size < 300; size++) {
+            console.log(`Size ${size}. Max power is ${maxPower.power} ${maxPower.x},${maxPower.y},${maxPower.size}`);
             const powerForSize = this.maxPower(grid, size);
             if (powerForSize.power > maxPower.power) {
                 maxPower.x = powerForSize.x;
