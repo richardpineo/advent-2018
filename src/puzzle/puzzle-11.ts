@@ -2,19 +2,20 @@
 import Puzzle from './puzzle'
 
 class Grid {
-    constructor(public size: number, public serial: number) {
+    constructor(public serial: number) {
     }
 
-    powerFor(x: number, y: number): number {
-        return this.powerLevel(x, y) +
-            this.powerLevel(x + 1, y) +
-            this.powerLevel(x + 2, y) +
-            this.powerLevel(x, y + 1) +
-            this.powerLevel(x + 1, y + 1) +
-            this.powerLevel(x + 2, y + 1) +
-            this.powerLevel(x, y + 2) +
-            this.powerLevel(x + 1, y + 2) +
-            this.powerLevel(x + 2, y + 2);
+    powerFor(public size: number, x: number, y: number): number {
+        let power = 0;
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                if (x >= 300 || y >= 300) {
+                    return -666;
+                }
+                power += this.powerLevel(x, y);
+            }
+        }
+
     }
 
     powerLevel(x: number, y: number): number {
@@ -26,6 +27,14 @@ class Grid {
         powerLevel -= 5;
         return powerLevel;
     }
+}
+
+class MaxPower {
+    constructor(public size: number) {
+    }
+    public x = -1;
+    public y = -1;
+    public power = -999;
 }
 
 // 11a: Max power is 30 at (21, 61)
@@ -44,7 +53,7 @@ export default class Puzzle11 extends Puzzle {
     solveA() {
         const grid = new Grid(300, 6042);
         const power = this.maxPower(grid);
-        console.log(`11a: Max power is ${power[2]} at (${power[0]}, ${power[1]})`);
+        console.log(`11a: Max power is ${power.power} at (${power.x}, ${power.y})`);
     }
 
     solveB() {
@@ -69,6 +78,12 @@ export default class Puzzle11 extends Puzzle {
 
         const grid6 = new Grid(300, 42);
         this.checkPower(grid6, 21, 61, 30);
+
+        const maxPower1 = new MaxPower(16);
+        maxPower1.x = 90;
+        maxPower1.y = 269;
+        maxPower1.power = 113;
+        this.checkMaxPower(18, maxPower1);
     }
 
     checkValue(grid: Grid, x: number, y: number, expected: number) {
@@ -80,24 +95,47 @@ export default class Puzzle11 extends Puzzle {
 
     checkPower(grid: Grid, x: number, y: number, expected: number) {
         const power = this.maxPower(grid);
-        if (power[0] != x || power[1] != y || power[2] != expected) {
+        if (power.x != x || power.y != y || power.power != expected) {
             console.log(`Power wrong! Expected ${expected} at (${x}, ${y}) but got ${power.toString()}`);
         }
     }
 
-    // 3 array elements - x,y,power
-    maxPower(grid: Grid): number[] {
-        let max = [-1, -1, -10];
+    checkMaxPower(serial: number, maxPower: MaxPower) {
+        const found = this.maxPowerForSizes(serial);
+        if (found.x !== maxPower.x ||
+            found.y !== maxPower.y ||
+            found.power !== maxPower.power ||
+            found.size !== maxPower.size) {
+            console.log(`Max power wrong! Expected ${JSON.stringify(maxPower)} but found ${JSON.stringify(found)}`);
+        }
+    }
+
+    maxPower(grid: Grid): MaxPower {
+        const maxPower = new MaxPower(grid.size);
         for (let y = 0; y < grid.size - 2; y++) {
             for (let x = 0; x < grid.size - 2; x++) {
                 const power = grid.powerFor(x, y);
-                if (power > max[2]) {
-                    max[0] = x;
-                    max[1] = y;
-                    max[2] = power;
+                if (power > maxPower.power) {
+                    maxPower.x = x;
+                    maxPower.y = y;
+                    maxPower.power = power;
                 }
             }
         }
-        return max;
+        return maxPower;
+    }
+
+    maxPowerForSizes(serial: number): MaxPower {
+        const maxPower = new MaxPower(-1);
+        for (let size = 3; size < 300; size++) {
+            const powerForSize = this.maxPower(new Grid(size, serial));
+            if (powerForSize.power > maxPower.power) {
+                maxPower.x = powerForSize.x;
+                maxPower.y = powerForSize.y;
+                maxPower.power = powerForSize.power;
+                maxPower.size = powerForSize.size;
+            }
+        }
+        return maxPower;
     }
 }
