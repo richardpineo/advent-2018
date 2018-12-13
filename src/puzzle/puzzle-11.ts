@@ -35,6 +35,12 @@ export default class Puzzle11 extends Puzzle {
 
         const grid4 = this.gridForSerialNumber(71);
         this.checkValue(grid4, 101, 153, 4);
+
+        const grid5 = this.gridForSerialNumber(18);
+        this.checkPower(grid5, 33, 45, 29);
+
+        const grid6 = this.gridForSerialNumber(42);
+        this.checkPower(grid6, 21, 61, 30);
     }
 
     checkValue(grid: number[], x: number, y: number, expected: number) {
@@ -42,6 +48,41 @@ export default class Puzzle11 extends Puzzle {
         if (value !== expected) {
             console.log(`(${x},${y}) is wrong! expected ${expected} but was ${value}`);
         }
+    }
+
+    checkPower(grid: number[], x: number, y: number, expected: number) {
+        const power = this.maxPower(grid);
+        if (power[0] != x || power[1] != y || power[2] != expected) {
+            console.log(`Power wrong! Expected ${expected} at (${x}, ${y}) but got ${power.toString()}`);
+        }
+    }
+
+    // 3 array elements - x,y,power
+    maxPower(grid: number[]): number[] {
+        let max = [-1, -1, -10];
+        for (let y = 0; y < 298; y++) {
+            for (let x = 0; x < 298; x++) {
+                const power = this.powerFor(grid, x, y);
+                if (power > max[2]) {
+                    max[0] = x;
+                    max[1] = y;
+                    max[2] = power;
+                }
+            }
+        }
+        return max;
+    }
+
+    powerFor(grid: number[], x: number, y: number): number {
+        return grid[this.index(x, y)] +
+            grid[this.index(x + 1, y)] +
+            grid[this.index(x + 2, y)] +
+            grid[this.index(x, y + 1)] +
+            grid[this.index(x + 1, y + 1)] +
+            grid[this.index(x + 2, y + 1)] +
+            grid[this.index(x, y + 2)] +
+            grid[this.index(x + 1, y + 2)] +
+            grid[this.index(x + 2, y + 2)];
     }
 
     gridForSerialNumber(serialNumber: number): number[] {
