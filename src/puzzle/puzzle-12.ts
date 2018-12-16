@@ -1,7 +1,6 @@
 
 import Puzzle from './puzzle'
 import * as _ from 'lodash'
-import { release } from 'os';
 
 class Rule {
 	constructor(public match: string, public result: boolean) {
@@ -17,7 +16,7 @@ const InitialState = '##.#.#.##..#....######..#..#...#.#..#.#.#..###.#.#.#..#..#
 
 export default class Puzzle12 extends Puzzle {
 	constructor() {
-		super("4: Potting the eyes and cross-breeding the teens");
+		super("12: Potting the eyes and cross-breeding the teens");
 	}
 
 	solve() {
