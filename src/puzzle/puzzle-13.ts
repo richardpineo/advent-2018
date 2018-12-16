@@ -144,21 +144,23 @@ class Track {
 	private parts = new Map<number, TrackPart>();
 }
 
+// 13a: 32,8 collision detected
+// 13b: 38,38 last cart alive
 export default class Puzzle12 extends Puzzle {
 	constructor() {
 		super("13: Mine cart mayhem");
 	}
 
 	private track!: Track;
-	private carts = new Array<Cart>();
+	private carts!: Array<Cart>;
 
 	solve() {
 		this.loadTrackAndCarts('13');
 		this.solveA();
+		this.loadTrackAndCarts('13');
 		this.solveB();
 	}
 
-	// 13a: 32,8 collision detected
 	private solveA() {
 		const collision = this.runUntilCollision();
 		if (collision === undefined) {
@@ -170,6 +172,13 @@ export default class Puzzle12 extends Puzzle {
 	}
 
 	private solveB() {
+		const lastCartAlive = this.runUntilNoCartsLeft();
+		if (lastCartAlive === undefined) {
+			console.log(`No cart found!`.red);
+		}
+		else {
+			console.log(`13b: ${lastCartAlive.x},${lastCartAlive.y} last cart alive`)
+		}
 	}
 
 	private runUntilCollision(): Location | undefined {
@@ -193,6 +202,37 @@ export default class Puzzle12 extends Puzzle {
 					this.dumpTrack();
 					return collision;
 				}
+			}
+		}
+		return undefined;
+	}
+
+	private runUntilNoCartsLeft(): Location | undefined {
+		this.dumpTrack();
+		for (let tick = 0; tick < 100000; tick++) {
+			if (debug) {
+				console.log(`\n${tick} -----------`.white);
+			}
+			// Sort the carts by move order
+			this.carts.sort((a, b) => a.moveOrder(this.track) - b.moveOrder(this.track));
+			const fullCarts = this.carts.slice();
+			for (let i = 0; i < fullCarts.length; i++) {
+				const c = fullCarts[i];
+
+				c.move(this.track);
+
+				this.dumpTrack();
+
+				// check for collision
+				const collision = this.hasCollisionAt();
+				if (collision !== undefined) {
+					// Remove the carts
+					_.remove(this.carts, c => c.moveOrder(this.track) === collision.moveOrder(this.track));
+				}
+			}
+
+			if (this.carts.length === 1) {
+				return this.carts[0].location;
 			}
 		}
 		return undefined;
@@ -235,6 +275,7 @@ export default class Puzzle12 extends Puzzle {
 		const dimY = lines.length;
 		const dimX = _.max(lines.map(l => l.length));
 		this.track = new Track(<number>dimX, dimY);
+		this.carts = new Array<Cart>();
 
 		lines.forEach((line, y) => {
 			const lineParts = line.split('');
