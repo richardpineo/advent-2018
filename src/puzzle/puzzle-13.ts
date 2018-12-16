@@ -2,6 +2,8 @@
 import Puzzle from './puzzle'
 import * as _ from 'lodash'
 
+const debug = false;
+
 enum Direction {
 	North = '^',
 	South = 'v',
@@ -151,18 +153,19 @@ export default class Puzzle12 extends Puzzle {
 	private carts = new Array<Cart>();
 
 	solve() {
-		this.loadTrackAndCarts('13-test');
+		this.loadTrackAndCarts('13');
 		this.solveA();
 		this.solveB();
 	}
 
+	// 13a: 32,8 collision detected
 	private solveA() {
 		const collision = this.runUntilCollision();
 		if (collision === undefined) {
 			console.log(`No collision found!`.red);
 		}
 		else {
-			console.log(`${collision.x},${collision.y} collision detected`)
+			console.log(`13a: ${collision.x},${collision.y} collision detected`)
 		}
 	}
 
@@ -171,8 +174,10 @@ export default class Puzzle12 extends Puzzle {
 
 	private runUntilCollision(): Location | undefined {
 		this.dumpTrack();
-		for (let tick = 0; tick < 100; tick++) {
-			console.log(`\n${tick} -----------`.white);
+		for (let tick = 0; tick < 10000; tick++) {
+			if (debug) {
+				console.log(`\n${tick} -----------`.white);
+			}
 			// Sort the carts by move order
 			this.carts.sort((a, b) => a.moveOrder(this.track) - b.moveOrder(this.track));
 			for (let i = 0; i < this.carts.length; i++) {
@@ -194,6 +199,9 @@ export default class Puzzle12 extends Puzzle {
 	}
 
 	private dumpTrack() {
+		if (!debug) {
+			return;
+		}
 		console.log('');
 		for (let y = 0; y < this.track.dimY; y++) {
 			let line = '';
