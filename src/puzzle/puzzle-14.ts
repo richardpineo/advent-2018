@@ -1,5 +1,6 @@
 
 import Puzzle from './puzzle'
+import { start } from 'repl';
 
 class Node {
 	constructor(public value: number, next: Node | undefined, prev: Node | undefined) {
@@ -33,25 +34,44 @@ export default class Puzzle14 extends Puzzle {
 	}
 
 	solve() {
-		/*
+
 		this.solveA(9);
 		this.solveA(5);
 		this.solveA(18);
-		this.solveA(2018); */
+		this.solveA(2018);
 		this.solveA(894501);
 		this.solveB();
 	}
 
 	solveA(recipes: number) {
+		const atLeast = recipes + 10;
+		const start = this.solveFor(atLeast)
+
+		let score = '';
+		let scoreStart = start;
+		for (let i = 0; i < recipes; i++) {
+			scoreStart = scoreStart.next;
+		}
+		for (let i = 0; i < 10; i++) {
+			score += scoreStart.value.toString();
+			scoreStart = scoreStart.next;
+		}
+
+		console.log(`14a: ${score} for ${recipes} recipes - what a score!`);
+	}
+
+	solveB() {
+	}
+
+	solveFor(recipesNeeded: number): Node {
 		const start = new Node(3, undefined, undefined);
 		let elf1 = start;
 		let elf2 = start.push(7);
 		let numRecipes = 2;
 
 		this.dump(start, elf1, elf2);
-		const atLeast = recipes + 10;
 
-		for (let i = 0; numRecipes <= atLeast; i++) {
+		for (let i = 0; numRecipes <= recipesNeeded; i++) {
 
 			// Add scores
 			const combined = elf1.value + elf2.value;
@@ -69,21 +89,7 @@ export default class Puzzle14 extends Puzzle {
 
 			this.dump(start, elf1, elf2);
 		}
-
-		let score = '';
-		let scoreStart = start;
-		for (let i = 0; i < recipes; i++) {
-			scoreStart = scoreStart.next;
-		}
-		for (let i = 0; i < 10; i++) {
-			score += scoreStart.value.toString();
-			scoreStart = scoreStart.next;
-		}
-
-		console.log(`${score} for ${numRecipes} recipes - what a score!`);
-	}
-
-	solveB() {
+		return start;
 	}
 
 	moveElf(elf: Node) {
