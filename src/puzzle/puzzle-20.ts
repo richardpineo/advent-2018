@@ -2,9 +2,40 @@
 import Puzzle from './puzzle'
 
 import * as _ from 'lodash'
+import { isBuffer } from 'util';
 
-class Path {
-	options = new Array<Path | string>();
+enum OptionType {
+	Word,
+	Branch,
+	Series
+}
+
+class Option {
+	protected constructor(public type: OptionType) {
+	}
+}
+
+class OptionWord extends Option {
+	constructor(public word: string) {
+		super(OptionType.Word);
+	}
+}
+
+class OptionBranch extends Option {
+	constructor(public options: Array<Option>) {
+		super(OptionType.Branch);
+	}
+}
+
+class OptionSeries extends Option {
+	constructor(public series: Array<Option>) {
+		super(OptionType.Series);
+	}
+}
+
+class State {
+	constructor(public index: number) {
+	}
 }
 
 // 20a:
@@ -18,11 +49,12 @@ export default class Puzzle20 extends Puzzle {
 
 	solve() {
 		const allFiles = [
-			'./data/20-ex1',
-			'./data/20-ex2',
-			'./data/20-ex3',
-			'./data/20-ex4',
-			'./data/20-ex5',
+			//'./data/20-ex1',
+			'./data/20-ex1b',
+			//			'./data/20-ex2',
+			//'./data/20-ex3',
+			//'./data/20-ex4',
+			//'./data/20-ex5',
 			//	'./data/20'
 		]
 		allFiles.forEach(f => {
@@ -42,7 +74,6 @@ export default class Puzzle20 extends Puzzle {
 		// Generate all the paths that comprise the map
 		const paths = this.flattenPaths(key);
 		this.verbose(`20a: ${paths.length} paths generated`);
-
 		this.verbose('Paths: ' + paths.join('\n'));
 
 		const numDoors = this.findMostDoors();
@@ -56,62 +87,214 @@ export default class Puzzle20 extends Puzzle {
 	}
 
 	flattenPaths(key: string): string[] {
-		const letters = key.split('').slice(1);
-		letters.pop();
+		const letters = key.split('');
 
-		const tokens = this.tokenize(letters);
+		let tokens = this.tokenize(letters);
 		this.verbose('Tokens: ' + tokens.join(' '));
 
-		const path = this.generatePath(tokens);
-		this.dumpPath(path);
-		// flatten them
+		tokens = tokens.slice(1);
+		let option = this.loadSeries(tokens, new State(0));
 
-		return [];
+		// simplify series
+		option = this.simplifySeries(option);
+
+		this.dumpPath(option);
+
+		// flatten them
+		//		return this.generateFlatPaths(path);
+		return tokens;
 	}
 
-	dumpPath(path: Path, depth = 0) {
+	simplifySeries(option: Option): Option {
+		switch (option.type) {
+			case OptionType.Word:
+				break;
+			case OptionType.Branch:
+				(<OptionBranch>option).options = (<OptionBranch>option).options.map(o => this.simplifySeries(o));
+				break;
+			case OptionType.Series: {
+				let series = (<OptionSeries>option).series;
+				if (series.length == 1 && series[0].type === OptionType.Word) {
+					return series[0];
+				}
+				(<OptionSeries>option).series = series.map(o => this.simplifySeries(o));
+				break;
+			}
+		}
+		return option;
+	}
+
+
+	/*
+		generateFlatPaths(path: Path): string[] {
+			let flatPaths = new Array<string>();
+
+			path.steps.forEach(path => {
+				if (typeof path === 'string') {
+					flatPaths.push(path);
+				}
+				else {
+					let subPaths = this.generateFlatPaths(path);
+					let newFlatPaths = new Array<string>();
+					subPaths.forEach(sp => {
+						flatPaths.forEach(fp => {
+							newFlatPaths.push(fp + sp);
+						})
+					})
+					flatPaths = newFlatPaths;
+				}
+			})
+
+			return flatPaths;
+		}
+	*/
+
+	dumpPath(option: Option, connector = '') {
 		if (!this.enableVerbose) {
 			return;
 		}
 
-		path.options.forEach(option => {
-			if (typeof option === 'string') {
-				this.verbose(`${depth}:  ${option}`);
-			}
-			else {
-				this.dumpPath(option, depth + 1);
-			}
-		})
+		switch (option.type) {
+			case OptionType.Word:
+				this.verbose(`${connector}:  ${(<OptionWord>option).word}`);
+				break;
+			case OptionType.Branch:
+				console.group("");
+				(<OptionBranch>option).options.forEach(opt => {
+					this.dumpPath(opt, '|');
+				})
+				console.groupEnd();
+				break;
+			case OptionType.Series:
+				console.group("");
+				(<OptionSeries>option).series.forEach(opt => {
+					this.dumpPath(opt, '&');
+				})
+				console.groupEnd();
+				break;
+		}
 	}
 
-	generatePath(tokens: string[], state: { index: number } = { index: 0 }): Path {
-		const path = new Path();
-
+	// Reads from the current index to the closing token.
+	loadSeries(tokens: string[], state: State): Option {
+		let optionSeries = new OptionSeries([]);
 		for (let i = state.index; i < tokens.length; i++) {
 			const token = tokens[i];
+
 			switch (token) {
-				case '|':
-					// Don't do anything
+				case '(': {
+					// load the interior
+					let nextState = new State(i + 1);
+					let branch = this.loadBranch(tokens, nextState);
+					optionSeries.series.push(branch);
+					i = nextState.index;
 					break;
-				case '(':
-					let newState = { index: i + 1 };
-					const nested = this.generatePath(tokens, newState);
-					path.options.push(nested);
-					i = newState.index;
-					break;
+				}
+
 				case ')':
-					state.index = i;
-					return path;
+				case '$':
+					return optionSeries;
+
 				default:
-					// must be a word
-					path.options.push(token);
+					optionSeries.series.push(new OptionWord(token));
 					break;
 			}
 		}
-		state.index = tokens.length;
-		return path;
+		throw new Error('unexpected series end');
 	}
 
+	loadBranch(tokens: string[], state: State): Option {
+		let branch = new OptionBranch([])
+		for (let i = state.index; i < tokens.length; i++) {
+			const token = tokens[i];
+
+			switch (token) {
+				case '|': {
+					// load the next one
+					let nextState = new State(i + 1);
+					let series = this.loadSeries(tokens, nextState);
+					branch.options.push(series);
+					i = nextState.index;
+					break;
+				}
+				case '(': {
+					// load the interior
+					let nextState = new State(i + 1);
+					let newBranch = this.loadBranch(tokens, nextState);
+					branch.options.push(newBranch);
+					i = nextState.index;
+					break;
+				}
+
+				case ')':
+					// If the previous on was | then add a blank word
+					if (tokens[i - 1] == '|') {
+						branch.options.push(new OptionWord(''));
+					}
+					// branch complete
+					state.index = i;
+					return branch;
+
+				default:
+					branch.options.push(new OptionWord(token));
+					break;
+			}
+		}
+		throw new Error('unexpected branch end');
+	}
+
+	/*
+
+		loadOption(tokens: string[], state: State): Option {
+			for (let i = state.index; i < tokens.length; i++) {
+				const token = tokens[i];
+
+				switch (token) {
+					case '^':
+						// Starting point
+						let options = new OptionSeries([]);
+						let nextState = new State(i + 1);
+						while (nextState.index < tokens.length) {
+							const inner = this.loadOption(tokens, nextState);
+							options.series.push(inner);
+						}
+						break;
+
+					case '$':
+						// End it
+						return state.currentSeries;
+
+					case '|': {
+						if (state.isSeries) {
+							throw "expected to be loading branch but found series";
+						}
+						// load the next one
+						let nextState = new State(i + 1, false);
+						const inner = this.loadOption(tokens, nextState);
+						state.currentBranch.options.push(inner);
+						i = nextState.index;
+						break;
+					}
+					case '(': {
+						// load the interior
+						let nextState = new State(i + 1, false);
+						const inner = this.loadOption(tokens, nextState);
+						state.currentBranch = new OptionBranch([inner]);
+						state.isSeries = false;
+						i = nextState.index;
+						break;
+					}
+					case ')':
+						// branch complete
+						state.index = i + 1;
+						return state.currentBranch;
+					default:
+						return new OptionWord(token);
+				}
+			}
+			return state.isSeries ? state.currentSeries : state.currentBranch;
+		}
+	*/
 	tokenize(letters: string[]): string[] {
 		let tokens = new Array<string>();
 
@@ -129,6 +312,8 @@ export default class Puzzle20 extends Puzzle {
 				case '|':
 				case '(':
 				case ')':
+				case '$':
+				case '^':
 					tokens.push(letters[i]);
 					break;
 				default:
