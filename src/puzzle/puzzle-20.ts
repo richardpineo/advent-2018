@@ -37,8 +37,15 @@ class State {
 	}
 }
 
+class Location {
+	constructor(public x: number, public y: number) {
+	}
+	key(): string {
+		return `${this.x},${this.y}`;
+	}
+}
 class Endpoint {
-	constructor(public doors: number, public x: number, public y: number) {
+	constructor(public doors: number, public key: string) {
 	}
 }
 
@@ -59,8 +66,8 @@ export default class Puzzle20 extends Puzzle {
 			'./data/20-ex2',
 			'./data/20-ex3',
 			'./data/20-ex4',
-			// './data/20-ex5',
-			// './data/20'
+			'./data/20-ex5',
+			'./data/20'
 		]
 		allFiles.forEach(f => {
 			this.solveA(f);
@@ -73,15 +80,15 @@ export default class Puzzle20 extends Puzzle {
 		if (key[0] != '^' || key[key.length - 1] !== '$') {
 			throw `Invalid regex: ${key}`;
 		}
-		console.log(`20a: Regex: ${_.truncate(key)}`.gray);
-		this.enableVerbose = key.length < 200;
+		// console.log(`20a: Regex: ${_.truncate(key)}`.gray);
+		this.enableVerbose = key.length < 0;
 
 		// Generate all the paths that comprise the map
 		const paths = this.flattenPaths(key);
-		this.verbose(`20a: ${paths.length} paths generated`);
-		this.verbose('Paths:\n' + paths.join('\n'));
+		// this.verbose(`20a: ${paths.length} paths generated`);
+		// this.verbose('Paths:\n' + paths.join('\n'));
 
-		const numDoors = this.findMostDoors();
+		const numDoors = this.findMostDoors(paths);
 		console.log(`20a: Furthest room requires passing ${numDoors} doors`.white);
 	}
 
@@ -95,7 +102,7 @@ export default class Puzzle20 extends Puzzle {
 		const letters = key.split('');
 
 		let tokens = this.tokenize(letters);
-		this.verbose('Tokens: ' + tokens.join(' '));
+		// this.verbose('Tokens: ' + tokens.join(' '));
 
 		tokens = tokens.slice(1);
 		let option = this.loadSeries(tokens, new State(0));
@@ -324,7 +331,44 @@ export default class Puzzle20 extends Puzzle {
 		return word;
 	}
 
-	findMostDoors() {
-		return 42;
+	findMostDoors(paths: string[]) {
+
+		// Find all the solutions
+		let solutions = new Array<Endpoint>();
+
+		paths.forEach(p => {
+			let current = new Location(0, 0);
+			p.split('').forEach((step, index) => {
+				switch (step) {
+					case 'N':
+						current.y -= 1;
+						break;
+					case 'S':
+						current.y += 1;
+						break;
+					case 'E':
+						current.x += 1;
+						break;
+					case 'W':
+						current.x -= 1;
+						break;
+				}
+				solutions.push(new Endpoint(index + 1, current.key()));
+			})
+		});
+
+		// For all the solutions with the same key, only keep the one with the lowest doors.
+		let groupedSolutions = _.groupBy(solutions, 'key');
+
+		let reducedSolutions = new Array<Endpoint>();
+		_.forIn(groupedSolutions, value => {
+			// Value is an array - reduce it to just the min doors
+			const leastDoors = <Endpoint>(_.minBy(value, 'doors'));
+			reducedSolutions.push(leastDoors);
+		});
+
+		// We have all the paths.
+		const maxDoors = <Endpoint>(_.maxBy(reducedSolutions, 'doors'));
+		return maxDoors.doors;
 	}
 }
