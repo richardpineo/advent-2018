@@ -2,7 +2,6 @@
 import Puzzle from './puzzle'
 
 import * as _ from 'lodash'
-import { isBuffer } from 'util';
 
 enum OptionType {
 	Word,
@@ -49,13 +48,14 @@ export default class Puzzle20 extends Puzzle {
 
 	solve() {
 		const allFiles = [
-			//'./data/20-ex1',
+			'./data/20-ex1',
 			'./data/20-ex1b',
-			//			'./data/20-ex2',
-			//'./data/20-ex3',
-			//'./data/20-ex4',
-			//'./data/20-ex5',
-			//	'./data/20'
+			'./data/20-ex1c',
+			'./data/20-ex2',
+			'./data/20-ex3',
+			'./data/20-ex4',
+			'./data/20-ex5',
+			'./data/20'
 		]
 		allFiles.forEach(f => {
 			this.solveA(f);
@@ -74,7 +74,7 @@ export default class Puzzle20 extends Puzzle {
 		// Generate all the paths that comprise the map
 		const paths = this.flattenPaths(key);
 		this.verbose(`20a: ${paths.length} paths generated`);
-		this.verbose('Paths: ' + paths.join('\n'));
+		// this.verbose('Paths: ' + paths.join('\n'));
 
 		const numDoors = this.findMostDoors();
 		console.log(`20a: Furthest room requires passing ${numDoors} doors`.white);
@@ -94,15 +94,11 @@ export default class Puzzle20 extends Puzzle {
 
 		tokens = tokens.slice(1);
 		let option = this.loadSeries(tokens, new State(0));
-
-		// simplify series
-		option = this.simplifySeries(option);
-
 		this.dumpPath(option);
 
 		// flatten them
-		//		return this.generateFlatPaths(path);
 		return tokens;
+		//		return this.generateFlatPaths(option);
 	}
 
 	simplifySeries(option: Option): Option {
@@ -125,75 +121,84 @@ export default class Puzzle20 extends Puzzle {
 	}
 
 
-	/*
-		generateFlatPaths(path: Path): string[] {
-			let flatPaths = new Array<string>();
+	generateFlatPaths(path: Option): string[] {
 
-			path.steps.forEach(path => {
-				if (typeof path === 'string') {
-					flatPaths.push(path);
-				}
-				else {
-					let subPaths = this.generateFlatPaths(path);
-					let newFlatPaths = new Array<string>();
-					subPaths.forEach(sp => {
-						flatPaths.forEach(fp => {
-							newFlatPaths.push(fp + sp);
-						})
-					})
-					flatPaths = newFlatPaths;
-				}
-			})
+		switch (path.type) {
+			case OptionType.Word:
+				return [(<OptionWord>(path)).word];
+			case OptionType.Series: {
+				const series = <OptionSeries>(path);
+				let flatPaths = new Array<string>();
+				series.series.forEach(option => {
+					const innerPaths = this.generateFlatPaths(option);
+					flatPaths = flatPaths.concat(innerPaths);
+				})
+				return flatPaths;
+			}
+			case OptionType.Branch: {
+				const branch = <OptionBranch>(path);
+				branch.options.forEach(option => {
 
-			return flatPaths;
+				})
+				return [];
+			}
 		}
-	*/
+	}
 
-	dumpPath(option: Option, connector = '') {
+	indent(depth: number): string {
+		let s = '';
+		for (let i = 0; i < depth; i++) {
+			s += ' ';
+		}
+		return s;
+	}
+	dumpPath(option: Option, connector = '', depth = 0) {
 		if (!this.enableVerbose) {
 			return;
 		}
 
 		switch (option.type) {
 			case OptionType.Word:
-				this.verbose(`${connector}:  ${(<OptionWord>option).word}`);
+				this.verbose(`${this.indent(depth)}${(<OptionWord>option).word} ${connector}`);
 				break;
 			case OptionType.Branch:
-				console.group("");
 				(<OptionBranch>option).options.forEach(opt => {
-					this.dumpPath(opt, '|');
+					this.dumpPath(opt, '|', depth + 1);
 				})
-				console.groupEnd();
 				break;
 			case OptionType.Series:
-				console.group("");
 				(<OptionSeries>option).series.forEach(opt => {
-					this.dumpPath(opt, '&');
+					this.dumpPath(opt, '&', depth);
 				})
-				console.groupEnd();
 				break;
 		}
 	}
 
 	// Reads from the current index to the closing token.
 	loadSeries(tokens: string[], state: State): Option {
+		// console.log(`load series ${state.index}`);
+
 		let optionSeries = new OptionSeries([]);
 		for (let i = state.index; i < tokens.length; i++) {
 			const token = tokens[i];
+			// console.log(`${i} series token ${token}`);
 
 			switch (token) {
 				case '(': {
 					// load the interior
 					let nextState = new State(i + 1);
 					let branch = this.loadBranch(tokens, nextState);
+					// console.log(`${nextState.index} loaded branch`);
 					optionSeries.series.push(branch);
+					// this.dumpPath(branch);
 					i = nextState.index;
 					break;
 				}
 
 				case ')':
 				case '$':
-					return optionSeries;
+					state.index = i - 1;
+					return this.simplifySeries(optionSeries);
 
 				default:
 					optionSeries.series.push(new OptionWord(token));
@@ -204,16 +209,22 @@ export default class Puzzle20 extends Puzzle {
 	}
 
 	loadBranch(tokens: string[], state: State): Option {
+		// console.log(`load branch ${state.index}`);
+
 		let branch = new OptionBranch([])
 		for (let i = state.index; i < tokens.length; i++) {
 			const token = tokens[i];
+			// console.log(`${i} branch token ${token}`);
 
 			switch (token) {
 				case '|': {
 					// load the next one
 					let nextState = new State(i + 1);
 					let series = this.loadSeries(tokens, nextState);
+					series = this.simplifySeries(series);
+					// console.log(`${nextState.index} loaded series`);
 					branch.options.push(series);
+					// this.dumpPath(series);
 					i = nextState.index;
 					break;
 				}
@@ -221,11 +232,15 @@ export default class Puzzle20 extends Puzzle {
 					// load the interior
 					let nextState = new State(i + 1);
 					let newBranch = this.loadBranch(tokens, nextState);
+					// console.log(`${nextState.index} loaded branch 2`);
+					// this.dumpPath(newBranch);
+
 					branch.options.push(newBranch);
 					i = nextState.index;
 					break;
 				}
 
+				case '$':
 				case ')':
 					// If the previous on was | then add a blank word
 					if (tokens[i - 1] == '|') {
@@ -233,6 +248,7 @@ export default class Puzzle20 extends Puzzle {
 					}
 					// branch complete
 					state.index = i;
+					// this.dumpPath(branch);
 					return branch;
 
 				default:
