@@ -45,7 +45,10 @@ class Location {
 	}
 }
 class Endpoint {
-	constructor(public doors: number, public key: string) {
+	constructor(public doors: number, public location: Location) {
+	}
+	dup(): Endpoint {
+		return new Endpoint(this.doors, new Location(this.location.x, this.location.y));
 	}
 }
 
@@ -61,8 +64,8 @@ export default class Puzzle20 extends Puzzle {
 	solve() {
 		const allFiles = [
 			'./data/20-ex1',
-			'./data/20-ex1b',
-			'./data/20-ex1c',
+			// './data/20-ex1b',
+			// './data/20-ex1c',
 			'./data/20-ex2',
 			'./data/20-ex3',
 			'./data/20-ex4',
@@ -75,6 +78,7 @@ export default class Puzzle20 extends Puzzle {
 		})
 	}
 
+	// 2465 too low
 	solveA(file: string) {
 		const key = this.readFile(file);
 		if (key[0] != '^' || key[key.length - 1] !== '$') {
@@ -84,12 +88,12 @@ export default class Puzzle20 extends Puzzle {
 		this.enableVerbose = key.length < 0;
 
 		// Generate all the paths that comprise the map
-		const paths = this.flattenPaths(key);
+		const options = this.findOptions(key);
 		// this.verbose(`20a: ${paths.length} paths generated`);
 		// this.verbose('Paths:\n' + paths.join('\n'));
 
-		const numDoors = this.findMostDoors(paths);
-		console.log(`20a: Furthest room requires passing ${numDoors} doors`.white);
+		const endpoint = this.findMostDoors(options);
+		console.log(`20a: ${endpoint.doors} doors at (${endpoint.location.key()}) for ${_.truncate(key)}`);
 	}
 
 	verbose(line: string) {
@@ -98,7 +102,7 @@ export default class Puzzle20 extends Puzzle {
 		}
 	}
 
-	flattenPaths(key: string): string[] {
+	findOptions(key: string): Option {
 		const letters = key.split('');
 
 		let tokens = this.tokenize(letters);
@@ -107,10 +111,7 @@ export default class Puzzle20 extends Puzzle {
 		tokens = tokens.slice(1);
 		let option = this.loadSeries(tokens, new State(0));
 		this.dumpPath(option);
-
-		// flatten them
-		const flattenedPaths = this.generateFlatPaths(option);
-		return _.uniq(flattenedPaths);
+		return option;
 	}
 
 	simplifySeries(option: Option): Option {
@@ -140,33 +141,6 @@ export default class Puzzle20 extends Puzzle {
 			})
 		})
 		return combinedPaths;
-	}
-
-	generateFlatPaths(path: Option): string[] {
-
-		switch (path.type) {
-			case OptionType.Word:
-				return [(<OptionWord>(path)).word];
-			case OptionType.Series: {
-				const series = <OptionSeries>(path);
-				let flatPaths = new Array<string>();
-				flatPaths.push('');
-				series.series.forEach(option => {
-					const innerPaths = this.generateFlatPaths(option);
-					flatPaths = this.combinePaths(flatPaths, innerPaths);
-				})
-				return flatPaths;
-			}
-			case OptionType.Branch: {
-				const branch = <OptionBranch>(path);
-				let flatPaths = new Array<string>();
-				branch.options.forEach(option => {
-					const innerPaths = this.generateFlatPaths(option);
-					flatPaths = flatPaths.concat(innerPaths);
-				})
-				return flatPaths;
-			}
-		}
 	}
 
 	indent(depth: number): string {
@@ -331,44 +305,71 @@ export default class Puzzle20 extends Puzzle {
 		return word;
 	}
 
-	findMostDoors(paths: string[]) {
+	findMinDoors(path: Option, current: Endpoint, minDoors: Map<string, Endpoint>) {
+		switch (path.type) {
+			case OptionType.Word: {
+				const word = (<OptionWord>(path)).word;
+				const steps = word.split('');
 
-		// Find all the solutions
-		let solutions = new Array<Endpoint>();
-
-		paths.forEach(p => {
-			let current = new Location(0, 0);
-			p.split('').forEach((step, index) => {
-				switch (step) {
-					case 'N':
-						current.y -= 1;
-						break;
-					case 'S':
-						current.y += 1;
-						break;
-					case 'E':
-						current.x += 1;
-						break;
-					case 'W':
-						current.x -= 1;
-						break;
+				let newEndpoint = current.dup();
+				steps.forEach(step => {
+					switch (step) {
+						case 'N':
+							newEndpoint.location.y += 1;
+							break;
+						case 'S':
+							newEndpoint.location.y -= 1;
+							break;
+						case 'E':
+							newEndpoint.location.x += 1;
+							break;
+						case 'W':
+							newEndpoint.location.x -= 1;
+							break;
+					}
+				})
+				newEndpoint.doors += steps.length;
+				const key = newEndpoint.location.key();
+				const exist = minDoors.get(key);
+				if (!exist || newEndpoint.doors < exist.doors) {
+					minDoors.set(key, newEndpoint);
 				}
-				solutions.push(new Endpoint(index + 1, current.key()));
-			})
-		});
+				return newEndpoint;
+			}
 
-		// For all the solutions with the same key, only keep the one with the lowest doors.
-		let groupedSolutions = _.groupBy(solutions, 'key');
+			case OptionType.Series: {
+				const series = <OptionSeries>(path);
 
-		let reducedSolutions = new Array<Endpoint>();
-		_.forIn(groupedSolutions, value => {
-			// Value is an array - reduce it to just the min doors
-			const leastDoors = <Endpoint>(_.minBy(value, 'doors'));
-			reducedSolutions.push(leastDoors);
-		});
+				series.series.forEach(option => {
+					current = this.findMinDoors(option, current, minDoors).dup();
+				});
+				return current;
+			}
 
-		// We have all the paths.
-		const maxDoors = <Endpoint>(_.maxBy(reducedSolutions, 'doors'));
-		return maxDoors.doors;
+			case OptionType.Branch: {
+				const branch = <OptionBranch>(path);
+				branch.options.forEach(option => {
+					this.findMinDoors(option, current, minDoors);
+				})
+				return current;
+			}
+		}
+	}
+
+	findMostDoors(option: Option) {
+
+		// Traverse the options, finding the min number of doors for each option.
+		const minDoors = new Map<string, Endpoint>();
+		this.findMinDoors(option, new Endpoint(0, new Location(0, 0)), minDoors);
+
+		// We have all the paths - find the max.
+		let endpoint = new Endpoint(0, new Location(0, 0));
+		minDoors.forEach((v, key) => {
+			// console.log(`${key}: ${v.doors}`.gray);
+			if (v.doors > endpoint.doors) {
+				endpoint = v.dup();
+			}
+		})
+		return endpoint;
 	}
 }
