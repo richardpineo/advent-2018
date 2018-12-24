@@ -37,6 +37,11 @@ class State {
 	}
 }
 
+class Endpoint {
+	constructor(public doors: number, public x: number, public y: number) {
+	}
+}
+
 // 20a:
 // 20b:
 export default class Puzzle20 extends Puzzle {
@@ -54,8 +59,8 @@ export default class Puzzle20 extends Puzzle {
 			'./data/20-ex2',
 			'./data/20-ex3',
 			'./data/20-ex4',
-			'./data/20-ex5',
-			'./data/20'
+			// './data/20-ex5',
+			// './data/20'
 		]
 		allFiles.forEach(f => {
 			this.solveA(f);
@@ -74,7 +79,7 @@ export default class Puzzle20 extends Puzzle {
 		// Generate all the paths that comprise the map
 		const paths = this.flattenPaths(key);
 		this.verbose(`20a: ${paths.length} paths generated`);
-		// this.verbose('Paths: ' + paths.join('\n'));
+		this.verbose('Paths:\n' + paths.join('\n'));
 
 		const numDoors = this.findMostDoors();
 		console.log(`20a: Furthest room requires passing ${numDoors} doors`.white);
@@ -97,8 +102,8 @@ export default class Puzzle20 extends Puzzle {
 		this.dumpPath(option);
 
 		// flatten them
-		return tokens;
-		//		return this.generateFlatPaths(option);
+		const flattenedPaths = this.generateFlatPaths(option);
+		return _.uniq(flattenedPaths);
 	}
 
 	simplifySeries(option: Option): Option {
@@ -120,6 +125,15 @@ export default class Puzzle20 extends Puzzle {
 		return option;
 	}
 
+	combinePaths(paths: string[], newPaths: string[]): string[] {
+		const combinedPaths = new Array<string>();
+		paths.forEach(fp => {
+			newPaths.forEach(ip => {
+				combinedPaths.push(fp + ip);
+			})
+		})
+		return combinedPaths;
+	}
 
 	generateFlatPaths(path: Option): string[] {
 
@@ -129,18 +143,21 @@ export default class Puzzle20 extends Puzzle {
 			case OptionType.Series: {
 				const series = <OptionSeries>(path);
 				let flatPaths = new Array<string>();
+				flatPaths.push('');
 				series.series.forEach(option => {
 					const innerPaths = this.generateFlatPaths(option);
-					flatPaths = flatPaths.concat(innerPaths);
+					flatPaths = this.combinePaths(flatPaths, innerPaths);
 				})
 				return flatPaths;
 			}
 			case OptionType.Branch: {
 				const branch = <OptionBranch>(path);
+				let flatPaths = new Array<string>();
 				branch.options.forEach(option => {
-
+					const innerPaths = this.generateFlatPaths(option);
+					flatPaths = flatPaths.concat(innerPaths);
 				})
-				return [];
+				return flatPaths;
 			}
 		}
 	}
@@ -152,6 +169,7 @@ export default class Puzzle20 extends Puzzle {
 		}
 		return s;
 	}
+
 	dumpPath(option: Option, connector = '', depth = 0) {
 		if (!this.enableVerbose) {
 			return;
@@ -259,58 +277,6 @@ export default class Puzzle20 extends Puzzle {
 		throw new Error('unexpected branch end');
 	}
 
-	/*
-
-		loadOption(tokens: string[], state: State): Option {
-			for (let i = state.index; i < tokens.length; i++) {
-				const token = tokens[i];
-
-				switch (token) {
-					case '^':
-						// Starting point
-						let options = new OptionSeries([]);
-						let nextState = new State(i + 1);
-						while (nextState.index < tokens.length) {
-							const inner = this.loadOption(tokens, nextState);
-							options.series.push(inner);
-						}
-						break;
-
-					case '$':
-						// End it
-						return state.currentSeries;
-
-					case '|': {
-						if (state.isSeries) {
-							throw "expected to be loading branch but found series";
-						}
-						// load the next one
-						let nextState = new State(i + 1, false);
-						const inner = this.loadOption(tokens, nextState);
-						state.currentBranch.options.push(inner);
-						i = nextState.index;
-						break;
-					}
-					case '(': {
-						// load the interior
-						let nextState = new State(i + 1, false);
-						const inner = this.loadOption(tokens, nextState);
-						state.currentBranch = new OptionBranch([inner]);
-						state.isSeries = false;
-						i = nextState.index;
-						break;
-					}
-					case ')':
-						// branch complete
-						state.index = i + 1;
-						return state.currentBranch;
-					default:
-						return new OptionWord(token);
-				}
-			}
-			return state.isSeries ? state.currentSeries : state.currentBranch;
-		}
-	*/
 	tokenize(letters: string[]): string[] {
 		let tokens = new Array<string>();
 
