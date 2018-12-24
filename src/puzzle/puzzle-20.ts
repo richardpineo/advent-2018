@@ -63,22 +63,24 @@ export default class Puzzle20 extends Puzzle {
 
 	solve() {
 		const allFiles = [
-			'./data/20-ex1',
-			// './data/20-ex1b',
-			// './data/20-ex1c',
-			'./data/20-ex2',
-			'./data/20-ex3',
-			'./data/20-ex4',
-			'./data/20-ex5',
+			/*
+						'./data/20-ex1',
+						'./data/20-ex1b',
+						'./data/20-ex1c',
+						'./data/20-ex2',
+						'./data/20-ex3',
+						'./data/20-ex4',
+						'./data/20-ex5',
+						'./data/20-ex6',
+						*/
 			'./data/20'
 		]
 		allFiles.forEach(f => {
 			this.solveA(f);
-			console.log();
 		})
 	}
 
-	// 2465 too low
+	// 2462, 2465 too low
 	solveA(file: string) {
 		const key = this.readFile(file);
 		if (key[0] != '^' || key[key.length - 1] !== '$') {
@@ -93,7 +95,7 @@ export default class Puzzle20 extends Puzzle {
 		// this.verbose('Paths:\n' + paths.join('\n'));
 
 		const endpoint = this.findMostDoors(options);
-		console.log(`20a: ${endpoint.doors} doors at (${endpoint.location.key()}) for ${_.truncate(key)}`);
+		console.log(`20a ${file}: ${endpoint.doors} doors at (${endpoint.location.key()}) for ${_.truncate(key)}`);
 	}
 
 	verbose(line: string) {
@@ -305,36 +307,36 @@ export default class Puzzle20 extends Puzzle {
 		return word;
 	}
 
-	findMinDoors(path: Option, current: Endpoint, minDoors: Map<string, Endpoint>) {
+	findMinDoors(path: Option, current: Endpoint, minDoors: Map<string, Endpoint>): Endpoint {
 		switch (path.type) {
 			case OptionType.Word: {
 				const word = (<OptionWord>(path)).word;
 				const steps = word.split('');
 
-				let newEndpoint = current.dup();
-				steps.forEach(step => {
+				let currentLoc = current.dup().location;
+				steps.forEach((step, index) => {
 					switch (step) {
 						case 'N':
-							newEndpoint.location.y += 1;
+							currentLoc.y += 1;
 							break;
 						case 'S':
-							newEndpoint.location.y -= 1;
+							currentLoc.y -= 1;
 							break;
 						case 'E':
-							newEndpoint.location.x += 1;
+							currentLoc.x += 1;
 							break;
 						case 'W':
-							newEndpoint.location.x -= 1;
+							currentLoc.x -= 1;
 							break;
 					}
+					const key = currentLoc.key();
+					const exist = minDoors.get(key);
+					const numDoors = current.doors + index + 1;
+					if (!exist || numDoors < exist.doors) {
+						minDoors.set(key, new Endpoint(numDoors, currentLoc));
+					}
 				})
-				newEndpoint.doors += steps.length;
-				const key = newEndpoint.location.key();
-				const exist = minDoors.get(key);
-				if (!exist || newEndpoint.doors < exist.doors) {
-					minDoors.set(key, newEndpoint);
-				}
-				return newEndpoint;
+				return new Endpoint(current.doors + steps.length, currentLoc)
 			}
 
 			case OptionType.Series: {
@@ -365,7 +367,7 @@ export default class Puzzle20 extends Puzzle {
 		// We have all the paths - find the max.
 		let endpoint = new Endpoint(0, new Location(0, 0));
 		minDoors.forEach((v, key) => {
-			// console.log(`${key}: ${v.doors}`.gray);
+			console.log(`${key}: ${v.doors}`.gray);
 			if (v.doors > endpoint.doors) {
 				endpoint = v.dup();
 			}
