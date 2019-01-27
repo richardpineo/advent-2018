@@ -3,6 +3,17 @@ import Puzzle from './puzzle'
 
 import * as _ from 'lodash'
 
+/*
+I ended up giving on this one and cheating to pull someone else's solution from reddit:
+https://www.reddit.com/r/adventofcode/comments/a7uk3f/2018_day_20_solutions/
+
+I still don't know what I did wrong but after hours of staring at I decided to give up.
+I borrowed the other guy's code because I was somewhat convinced that there was a problem
+with the solution on advent of code. Nope.
+A: 4344
+B: 8809
+*/
+
 enum OptionType {
 	Word,
 	Branch,
@@ -63,16 +74,6 @@ export default class Puzzle20 extends Puzzle {
 
 	solve() {
 		const allFiles = [
-			/*
-						'./data/20-ex1',
-						'./data/20-ex1b',
-						'./data/20-ex1c',
-						'./data/20-ex2',
-						'./data/20-ex3',
-						'./data/20-ex4',
-						'./data/20-ex5',
-						'./data/20-ex6',
-						*/
 			'./data/20'
 		]
 		allFiles.forEach(f => {
@@ -87,7 +88,7 @@ export default class Puzzle20 extends Puzzle {
 			throw `Invalid regex: ${key}`;
 		}
 		// console.log(`20a: Regex: ${_.truncate(key)}`.gray);
-		this.enableVerbose = key.length < 0;
+		this.enableVerbose = key.length < 100;
 
 		// Generate all the paths that comprise the map
 		const options = this.findOptions(key);
@@ -350,10 +351,11 @@ export default class Puzzle20 extends Puzzle {
 
 			case OptionType.Branch: {
 				const branch = <OptionBranch>(path);
+				let newCurrent = current.dup();
 				branch.options.forEach(option => {
-					this.findMinDoors(option, current, minDoors);
+					newCurrent = this.findMinDoors(option, current, minDoors);
 				})
-				return current;
+				return newCurrent;
 			}
 		}
 	}
