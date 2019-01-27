@@ -7,6 +7,14 @@ class State {
 	dup(): State {
 		return new State(Array.from(this.regs));
 	}
+	same(s: State): boolean {
+		for (let i = 0; i < 4; i++) {
+			if (this.regs[i] != s.regs[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
 }
 
 class Instruction {
@@ -21,7 +29,7 @@ class TestCase {
 
 type OperatorFunction = (state: State, inputA: number, inputB: number) => number;
 
-// 16a:
+// 16a: 592 / 812 match 3 or more
 // 16b:
 export default class Puzzle16 extends Puzzle {
 	constructor() {
@@ -54,9 +62,9 @@ export default class Puzzle16 extends Puzzle {
 		const gtii = (state: State, inputA: number, inputB: number): number => state.regs[inputA] > inputB ? 1 : 0;
 		const gtrr = (state: State, inputA: number, inputB: number): number => state.regs[inputA] > state.regs[inputB] ? 1 : 0;
 
-		const etir = (state: State, inputA: number, inputB: number): number => inputA = state.regs[inputB] ? 1 : 0;
-		const etii = (state: State, inputA: number, inputB: number): number => state.regs[inputA] = inputB ? 1 : 0;
-		const etrr = (state: State, inputA: number, inputB: number): number => state.regs[inputA] = state.regs[inputB] ? 1 : 0;
+		const etir = (state: State, inputA: number, inputB: number): number => inputA === state.regs[inputB] ? 1 : 0;
+		const etii = (state: State, inputA: number, inputB: number): number => state.regs[inputA] === inputB ? 1 : 0;
+		const etrr = (state: State, inputA: number, inputB: number): number => state.regs[inputA] === state.regs[inputB] ? 1 : 0;
 
 		return [addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtii, gtrr, etir, etii, etrr];
 	}
@@ -68,7 +76,21 @@ export default class Puzzle16 extends Puzzle {
 	solveA() {
 		const cases = this.loadCases();
 
-		console.log(`15a: ${cases.length} cases loaded`);
+		let matchThree = 0;
+		cases.forEach(c => {
+			let count = 0;
+			this.operators.forEach(oper => {
+				const after = c.before.dup();
+				after.regs[c.command.output] = oper(c.before, c.command.inputA, c.command.inputB);
+				if (after.same(c.after)) {
+					count++;
+				}
+			});
+			if (count >= 3) {
+				matchThree++;
+			}
+		});
+		console.log(`16a: ${matchThree} / ${cases.length} match 3 or more`);
 	}
 
 	loadCases(): TestCase[] {
