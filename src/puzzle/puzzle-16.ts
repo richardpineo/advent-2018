@@ -2,32 +2,77 @@
 import Puzzle from './puzzle'
 
 class State {
-	constructor(public r1: number, public r2: number, public r3: number, public r4: number) {
+	constructor(public regs: number[]) {
+	}
+	dup(): State {
+		return new State(Array.from(this.regs));
 	}
 }
 
-class Command {
+class Instruction {
 	constructor(public opcode: number, public inputA: number, public inputB: number, public output: number) {
 	}
 }
 
 class TestCase {
-	constructor(public before: State, public command: Command, public after: State) {
+	constructor(public before: State, public command: Instruction, public after: State) {
 	}
 }
+
+type OperatorFunction = (state: State, inputA: number, inputB: number) => number;
 
 // 16a:
 // 16b:
 export default class Puzzle16 extends Puzzle {
 	constructor() {
 		super("16: Watch programming");
+		this.operators = this.defineOperators();
+		if (this.operators.length != 16) {
+			throw new Error("bad opcodes");
+		}
+	}
+
+	operators: OperatorFunction[];
+
+	defineOperators(): OperatorFunction[] {
+		const addr = (state: State, inputA: number, inputB: number): number => state.regs[inputA] + state.regs[inputB];
+		const addi = (state: State, inputA: number, inputB: number): number => state.regs[inputA] + inputB;
+
+		const mulr = (state: State, inputA: number, inputB: number): number => state.regs[inputA] * state.regs[inputB];
+		const muli = (state: State, inputA: number, inputB: number): number => state.regs[inputA] * inputB;
+
+		const banr = (state: State, inputA: number, inputB: number): number => state.regs[inputA] & state.regs[inputB];
+		const bani = (state: State, inputA: number, inputB: number): number => state.regs[inputA] & inputB;
+
+		const borr = (state: State, inputA: number, inputB: number): number => state.regs[inputA] | state.regs[inputB];
+		const bori = (state: State, inputA: number, inputB: number): number => state.regs[inputA] | inputB;
+
+		const setr = (state: State, inputA: number, inputB: number): number => state.regs[inputA];
+		const seti = (state: State, inputA: number, inputB: number): number => inputA;
+
+		const gtir = (state: State, inputA: number, inputB: number): number => inputA > state.regs[inputB] ? 1 : 0;
+		const gtii = (state: State, inputA: number, inputB: number): number => state.regs[inputA] > inputB ? 1 : 0;
+		const gtrr = (state: State, inputA: number, inputB: number): number => state.regs[inputA] > state.regs[inputB] ? 1 : 0;
+
+		const etir = (state: State, inputA: number, inputB: number): number => inputA = state.regs[inputB] ? 1 : 0;
+		const etii = (state: State, inputA: number, inputB: number): number => state.regs[inputA] = inputB ? 1 : 0;
+		const etrr = (state: State, inputA: number, inputB: number): number => state.regs[inputA] = state.regs[inputB] ? 1 : 0;
+
+		return [addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtii, gtrr, etir, etii, etrr];
 	}
 
 	solve() {
-		this.solve1a();
+		this.solveA();
 	}
 
-	solve1a() {
+	solveA() {
+		const cases = this.loadCases();
+
+		console.log(`15a: ${cases.length} cases loaded`);
+	}
+
+	loadCases(): TestCase[] {
+
 		const lines = this.readLines('./data/16a');
 
 		let cases = new Array<TestCase>();
@@ -53,24 +98,25 @@ export default class Puzzle16 extends Puzzle {
 			}
 
 			cases.push(new TestCase(
-				new State(
+				new State([
 					parseInt(matchesBefore[1]),
 					parseInt(matchesBefore[2]),
 					parseInt(matchesBefore[3]),
-					parseInt(matchesBefore[4])),
-				new Command(
+					parseInt(matchesBefore[4])
+				]),
+				new Instruction(
 					parseInt(matchesCommand[1]),
 					parseInt(matchesCommand[2]),
 					parseInt(matchesCommand[3]),
 					parseInt(matchesCommand[4])),
-				new State(
+				new State([
 					parseInt(matchesAfter[1]),
 					parseInt(matchesAfter[2]),
 					parseInt(matchesAfter[3]),
-					parseInt(matchesAfter[4]))
+					parseInt(matchesAfter[4])
+				])
 			));
 		}
-
-		console.log(`15a: ${cases.length} cases loaded`);
+		return cases;
 	}
 }
