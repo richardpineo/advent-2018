@@ -151,8 +151,8 @@ export default class Puzzle12 extends Puzzle {
 		super("13: Mine cart mayhem");
 	}
 
-	private track!: Track;
-	private carts!: Array<Cart>;
+	private track = new Track(0, 0);
+	private carts = new Array<Cart>();
 
 	solve() {
 		this.loadTrackAndCarts('13');

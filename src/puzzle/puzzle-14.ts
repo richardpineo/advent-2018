@@ -146,21 +146,22 @@ export default class Puzzle14 extends Puzzle {
 
 	dump(start: Node, elf1: Node, elf2: Node) {
 		return;
-
-		let current = start;
-		let line = '';
-		do {
-			if (current === elf1) {
-				line += `(${current.value})`;
-			}
-			else if (current === elf2) {
-				line += `[${current.value}]`;
-			}
-			else {
-				line += ` ${current.value} `;
-			}
-			current = current.next;
-		} while (current !== start);
-		console.log(line.gray);
+		/*
+				let current = start;
+				let line = '';
+				do {
+					if (current === elf1) {
+						line += `(${current.value})`;
+					}
+					else if (current === elf2) {
+						line += `[${current.value}]`;
+					}
+					else {
+						line += ` ${current.value} `;
+					}
+					current = current.next;
+				} while (current !== start);
+				console.log(line.gray);
+		*/
 	}
 }
