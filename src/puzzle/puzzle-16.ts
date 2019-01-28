@@ -31,7 +31,7 @@ class TestCase {
 type OperatorFunction = (state: State, inputA: number, inputB: number) => number;
 
 // 16a: 592 / 812 match 3 or more
-// 16b:
+// 16b: 557 is in register 0
 export default class Puzzle16 extends Puzzle {
 	constructor() {
 		super("16: Watch programming");
@@ -99,10 +99,16 @@ export default class Puzzle16 extends Puzzle {
 		const order = this.findOrder();
 
 		// Load the program
+		const instructions = this.loadProgram();
 
 		// run it.
-
-
+		const regs = new State([0, 0, 0, 0]);
+		instructions.forEach(instruction => {
+			const cmd = order[instruction.opcode];
+			const output = this.operators[cmd](regs, instruction.inputA, instruction.inputB);
+			regs.regs[instruction.output] = output;
+		})
+		console.log(`16b: ${regs.regs[0]} is in register 0`);
 	}
 
 	findOrder(): number[] {
@@ -163,6 +169,24 @@ export default class Puzzle16 extends Puzzle {
 			order.push(value);
 		});
 		return order;
+	}
+
+	loadProgram(): Instruction[] {
+		const lines = this.readLines('./data/16b');
+		const regexCommand = "([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)";
+		const regexEvalCommand = new RegExp(regexCommand);
+		const instructions = new Array<Instruction>();
+		for (let i = 0; i < lines.length; i++) {
+			const matchesCommand = regexEvalCommand.exec(lines[i]);
+			if (!matchesCommand || matchesCommand.length !== 5) {
+				throw new Error("Can't read command");
+			}
+			instructions.push(new Instruction(parseInt(matchesCommand[1]),
+				parseInt(matchesCommand[2]),
+				parseInt(matchesCommand[3]),
+				parseInt(matchesCommand[4])));
+		}
+		return instructions;
 	}
 
 	loadCases(): TestCase[] {
