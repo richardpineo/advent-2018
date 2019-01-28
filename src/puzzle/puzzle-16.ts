@@ -1,5 +1,6 @@
 
 import Puzzle from './puzzle'
+import * as _ from 'lodash'
 
 class State {
 	constructor(public regs: number[]) {
@@ -71,6 +72,7 @@ export default class Puzzle16 extends Puzzle {
 
 	solve() {
 		this.solveA();
+		this.solveB();
 	}
 
 	solveA() {
@@ -91,6 +93,76 @@ export default class Puzzle16 extends Puzzle {
 			}
 		});
 		console.log(`16a: ${matchThree} / ${cases.length} match 3 or more`);
+	}
+
+	solveB() {
+		const order = this.findOrder();
+
+		// Load the program
+
+		// run it.
+
+
+	}
+
+	findOrder(): number[] {
+		const cases = this.loadCases();
+
+		// Each opcode can be any of the commands 0..15
+		const possible = new Array<Set<number>>();
+		for (let pos = 0; pos < 16; pos++) {
+			let posThis = new Set<number>();
+			for (let i = 0; i < 16; i++) {
+				posThis.add(i);
+			}
+			possible.push(posThis);
+		}
+
+		// For each case, determine which are valid for each opcode.
+		cases.forEach(c => {
+			let casePossible = new Set<number>();
+			this.operators.forEach((oper, index) => {
+				const after = c.before.dup();
+				after.regs[c.command.output] = oper(c.before, c.command.inputA, c.command.inputB);
+				if (after.same(c.after)) {
+					casePossible.add(index);
+				}
+			});
+			// Remove all of the non-matching opcodes for this case
+			let oldPossibleSet = possible[c.command.opcode];
+			let oldPossible = Array.from(oldPossibleSet.values());
+			let newPossible = oldPossible.filter(x => casePossible.has(x));
+			possible[c.command.opcode] = new Set(newPossible);
+		});
+		/*
+		possible.forEach((p, index) => {
+			console.log(`[${index}]: ${Array.from(p.values()).join(' ')}`);
+		});
+		*/
+
+		let done = false;
+		while (!done) {
+			possible.forEach((p, index) => {
+				if (p.size === 1) {
+					const value = Array.from(p.values())[0];
+					// remove from all other possibilities.
+					possible.forEach((p2, index2) => {
+						if (index2 !== index) {
+							if (p2.has(value)) {
+								p2.delete(value);
+							}
+						}
+					})
+				}
+			})
+			done = _.every(possible, p => p.size === 1);
+		}
+		const order = new Array<number>();
+		possible.forEach((p) => {
+			const value = Array.from(p.values())[0];
+			order.push(value);
+		});
+		return order;
 	}
 
 	loadCases(): TestCase[] {
